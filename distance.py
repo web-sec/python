@@ -81,7 +81,67 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
     rankings.reverse()#反向排序
     return rankings
 
+#从反映偏好的字典中返回最佳匹配者
+def topMatches(prefs,person,n=5,similarity=sim_pearson):
+  scores=[(similarity(prefs,person,other),other)
+  for other in prefs if other!=person]
+  scores.sort()
+  scores.reverse()
+  return scores[0:n]
+
+def transformPrefs(prefs):
+  result={}
+  for person in prefs:
+    for item in prefs[person]:
+      result.setdefault(item,{})
+
+      #将物品和人员对调
+      result[item][person]=prefs[person][item]
+  return result
+
+def calculateSimilarItems(prefs,n=10):
+  #给出与这些物品最接近的所有物品
+  result={}
+  #以物品为中心对偏好矩阵实施倒置处理
+  itemPrefs=transformPrefs(prefs)
+  c=0
+  for item in itemPrefs:
+    c+=1
+    if c%100==0: print "%d / %d" % (c,len(itemPrefs))
+    #寻找最为相近的物品
+    scores=topMatches(itemPrefs,item,n=n,similarity=sim_euclidean)
+    result[item]=scores
+  return result
+
+def getRecommendedItems(prefs,itemMatch,user):
+  userRatings=prefs[user]
+  scores={}
+  totalSim={}
+  #循环遍历由当前用户评分的物品
+  for (item,rating) in userRatings.items( ):
+
+    #循环遍历与当前物品相近的物品
+    for (similarity,item2) in itemMatch[item]:
+
+      if item2 in userRatings: continue
+      #评价值与相似度的加权之和
+      scores.setdefault(item2,0)
+      scores[item2]+=similarity*rating
+      #全部相似度之和
+      totalSim.setdefault(item2,0)
+      totalSim[item2]+=similarity
+
+  #将每个合计值除以加权和，求出平均值
+  rankings=[(score/totalSim[item],item) for item,score in scores.items( )]
+
+  #案由高到低排序
+  rankings.sort( )
+  rankings.reverse( )
+  return rankings
+
 if __name__ == '__main__':
-    carculate(10,sim_euclidean)
-    carculate(10,sim_pearson)
-    print(getRecommendations(critics,'tom'))
+    # carculate(10,sim_euclidean)
+    # carculate(10,sim_pearson)
+    # print(getRecommendations(critics,'tom'))
+    itemsim=calculateSimilarItems(critics)
+    print(getRecommendedItems(critics,itemsim,'harry'))
