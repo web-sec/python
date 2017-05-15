@@ -1,5 +1,5 @@
 #!python3
 #-*-coding:utf-8-*-
-from PIL import Image 
 if __name__=='__main__':
-    print ("yes")
+    a=(1,2,3,4,5)
+    print(a.len())

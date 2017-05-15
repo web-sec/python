@@ -19,6 +19,10 @@ sudo python3.6 -m pip install xxx
 ### idle : 打开python shell
 ### 安装第三方包可以用easy_install，一次性搞定
 ### 查看已安装的第三方库：在python环境中输入help('modules')
+### python下使用mongodb
+- 安装mongodb : 用homebrew安装，一键搞定，之后新建、data/db文件夹，具体看印象笔记
+- 安装mongodb可视化工具:robomongo，官网直接下
+- 安装第三方包 pymongo
 // :整数除法：返回一个最接近但不大于结果的整数
 
 ### python基本数据类型：

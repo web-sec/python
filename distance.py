@@ -60,6 +60,7 @@ def sim_pearson(prefs,p1,p2):
     r=num/den
     return r
 
+#找出最适合某人的东西
 def getRecommendations(prefs,person,similarity=sim_pearson):
     totals={}
     simSums={}
@@ -70,11 +71,15 @@ def getRecommendations(prefs,person,similarity=sim_pearson):
         if sim<=0:continue
         for item in prefs[other]:
             if item not in prefs[person] or prefs[person][item]==0:
-                totals.setdefault(item,0)#dict.setdefault(key,[default])如果键在字典中，返回这个键所对应的值。如果键不在字典中，向字典 中插入这个键，并且以default为这个键的值，并返回 default。default的默认值为None
+                #dict.setdefault(key,[default])如果键在字典中，返回这个键所对应的值。
+                #如果键不在字典中，向字典中插入这个键，并且以default为这个键的值，并返回 default。default的默认值为None
+                totals.setdefault(item,0)
+                #总得分为此人与各个人得分的总和；某两人的得分为两者的皮尔逊距离*参考者的评分
                 totals[item]+=prefs[other][item]*sim
                 simSums.setdefault(item,0)
+                #其他人与目标人的皮尔逊距离之和；如果没评价过则不计算
                 simSums[item]+=sim
-    #建立一个归一化的列表
+    #建立一个归一化的列表（总得分/距离和）
     rankings=[(total/simSums[item],item) for item,total in totals.items()]#totals.items()方法将字典转变为元组
     #返回进过排序的列表
     rankings.sort()
