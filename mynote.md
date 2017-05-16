@@ -51,3 +51,41 @@ sudo python3.6 -m pip install xxx
 - .input()
 - .raw_inpuit() 所有输入都是字符串
 - .getpass() 不显示输入信息
+
+###函数
+- 传递可变数量参数：1. \**kwargs(多余的参数传递到此字典中) 2.\*args（多余的参数传递到此列表中）
+
+###字典
+- .pop(x) 删除键值为x的键值对
+- .has_key(x) 字典是否有键值为x的成员
+- in语句: x in y y字典是否含有x键
+
+###类
+- \__init__(self):设置该类对象的初始值
+- \__eq__(self,other):对两个对象进行==判断时定义判断方式
+- \__ne__(self,other):对两个对象进行!=判断时定义判断方式
+- \__gt__(self,other):对两个对象进行>判断时定义判断方式
+- \__lt__(self,other):对两个对象进行<判断时定义判断方式
+- \__gte__(self,other):对两个对象进行>=判断时定义判断方式
+- \__lte__(self,other):对两个对象进行<=判断时定义判断方式
+- \__str__(self,other):对print一个对象时定义方式
+- 继承：class sonclass(fatherclass)
+- super() 调用父类中的方法
+
+###操作文件
+####原生库函数：
+- opne(x，y) 打开指定文件x,y为打开方式。有‘r+w’:读写，即打开并添加；‘w’:写，直接覆盖原来的内容；’w+’/'a':如果文件不存在，则创建之
+- .close() 关闭文件
+- .readline() 逐行读取
+- .writeline(x) 将列表x中的值逐行写入
+####os库
+- os.getcwd() 返回当前目录
+- os.listdir(x) 返回x目录下所有文件名（x='.'代表当前目录）
+- os.walk()
+- os.makedir(x) 创建文件夹x
+- os.makedirs(x\\y) 创建嵌套文件夹
+- os.stat(x) 路径为x的文件夹的相关数据。st_size:文件大小(字节)；st_mtime:最后访问时间、最后修改时间（UNIX时间）
+
+###json库
+- .load(x) 加载JSON对象
+- .dump(j,f，indent) 将JSON对象j保存到f文件里,indent是可选参数，能格式化JSON
