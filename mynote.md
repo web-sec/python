@@ -56,7 +56,8 @@ sudo python3.6 -m pip install xxx
 - 传递可变数量参数：1. \**kwargs(多余的参数传递到此字典中) 2.\*args（多余的参数传递到此列表中）
 
 ###字典
-- .pop(x) 删除键值为x的键值对
+- .pop(x) 删除键值为x的键值对，并作为返回值返回
+- del(d[x]) 删除d字典中键为x的项，不返回
 - .has_key(x) 字典是否有键值为x的成员
 - in语句: x in y y字典是否含有x键
 
@@ -89,3 +90,6 @@ sudo python3.6 -m pip install xxx
 ###json库
 - .load(x) 加载JSON对象
 - .dump(j,f，indent) 将JSON对象j保存到f文件里,indent是可选参数，能格式化JSON
+
+###pymongo库
+find与find_one的区别:前者返回游标对象，后者返回字典对象
