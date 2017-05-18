@@ -13,12 +13,14 @@ sudo vim 文件名
 
 ```
 sudo python3.6 -m pip install xxx
+或者 pip3 install xxx
 ```
 ###关于在atom中指定哪个版本的python运行代码
 在文件开头（一般是第一行）指定#!pyhton2/3
 ### idle : 打开python shell
 ### 安装第三方包可以用easy_install，一次性搞定
 ### 查看已安装的第三方库：在python环境中输入help('modules')
+退出python环境:quit()或control+d
 ### python下使用mongodb
 - 安装mongodb : 用homebrew安装，一键搞定，之后新建、data/db文件夹，具体看印象笔记
 - 安装mongodb可视化工具:robomongo，官网直接下
@@ -56,7 +58,7 @@ sudo python3.6 -m pip install xxx
 - 传递可变数量参数：1. \**kwargs(多余的参数传递到此字典中) 2.\*args（多余的参数传递到此列表中）
 
 ###字典
-- .pop(x) 删除键值为x的键值对，并作为返回值返回
+- .pop(x) 删除键值为x的键值对，并返回该键对应的值
 - del(d[x]) 删除d字典中键为x的项，不返回
 - .has_key(x) 字典是否有键值为x的成员
 - in语句: x in y y字典是否含有x键
@@ -93,3 +95,18 @@ sudo python3.6 -m pip install xxx
 
 ###pymongo库
 find与find_one的区别:前者返回游标对象，后者返回字典对象
+
+###pdb调试器
+启用:在目标目录下python3 -m pdb xx.py（-m意思是加载后面的模块）
+退出:-quit/q
+pdb命令:
+| 命令  |                      说明                       | 缩写 |
+| ----- | ----------------------------------------------- | ---- |
+| args  | 显示传送给函数的参数                            | a    |
+| break | 增加一个断点                                    | b    |
+| cont  | 继续直到下一个断点                              | c    |
+| clear | 清除所有断点                                    | cl   |
+| list  | 显示当前所在位置附近的代码                      | l    |
+| next  | 执行代码的当前行                                | n    |
+| step  | 执行代码的当前行 ，如果进入一个函数，则停止执行 | s    |
+| tbreak      | 类似break，但是执行到断点时会把该断点删除                                                |  none    |

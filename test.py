@@ -1,8 +1,15 @@
 #!python3
 #-*-coding:utf-8-*-
-a={'a':1,'b':2,'c':3}
+import requests
+from bs4 import BeautifulSoup
+import time
+import re
+import pymongo
+import random
+import urllib.request
 
-if __name__=='__main__':
-    if 'a' in a:
-        a.pop('a')
-    print(a)
+url="ct/1012611/collections"
+if type(url)=='string':
+    print("ok")
+else:
+    print(type(url))
