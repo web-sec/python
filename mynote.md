@@ -111,3 +111,9 @@ pdb命令:
 | next  | 执行代码的当前行                                | n    |
 | step  | 执行代码的当前行 ，如果进入一个函数，则停止执行 | s    |
 | tbreak      | 类似break，但是执行到断点时会把该断点删除                                                |  none    |
+
+###urllib库
+- python3.x中,urllib.request就是以前的urllib2
+- urlencode()方法在urllib.parse里，注意有时需要在结尾添加.encode(encoding='utf_8')
+- 发送请求的urllib.request.Request(url,data,head)的三参数为:url路径，用户名密码，header属性
+- 获取响应urllib.request.urlopen(req)
