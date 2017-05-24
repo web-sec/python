@@ -28,13 +28,14 @@ sudo python3.6 -m pip install xxx
 // :整数除法：返回一个最接近但不大于结果的整数
 
 ### python基本数据类型：
-- integer
-- float
-- long
+- number(包括int、float、bool、complex)
 - string
-- list
-- tuple
-- dictionary
+- list（列表）
+- tuple(元组)
+- sets(集合)
+- dictionary（字典）
+数据类型判断方法:type(x)、isinstance(x,type)
+区别：type()不会认为子类是一种父类类.isinstance()会认为子类是一种父类类型。
 
 ### 字符串方法
 - .upper() 全部大写
