@@ -117,3 +117,6 @@ pdb命令:
 - urlencode()方法在urllib.parse里，注意有时需要在结尾添加.encode(encoding='utf_8')
 - 发送请求的urllib.request.Request(url,data,head)的三参数为:url路径，用户名密码，header属性
 - 获取响应urllib.request.urlopen(req)
+
+###BeautifulSoup库
+- 获取标签属性:.attrs['属性名']
