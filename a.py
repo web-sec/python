@@ -7,9 +7,6 @@ import re
 import pymongo
 import random
 
-a=['a','b','c']
-b=[1,2,3]
-c={}
-for x in range(0,len(a)):
-    c[a[x]]=b[x]
-print(c)
+mode = re.compile(r'\d+')
+a = mode.findall('data')
+print(a)

@@ -95,7 +95,9 @@ sudo python3.6 -m pip install xxx
 - .dump(j,f，indent) 将JSON对象j保存到f文件里,indent是可选参数，能格式化JSON
 
 ###pymongo库
-find与find_one的区别:前者返回游标对象，后者返回字典对象
+- find与find_one的区别:前者返回游标对象，后者返回字典对象
+- save遇到相同的_id会覆盖，insert直接报错
+- 在希望保存的数据集中添加_id属性，可自定义文档的_id
 
 ###pdb调试器
 启用:在目标目录下python3 -m pdb xx.py（-m意思是加载后面的模块）
