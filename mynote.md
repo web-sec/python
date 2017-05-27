@@ -63,6 +63,7 @@ sudo python3.6 -m pip install xxx
 - del(d[x]) 删除d字典中键为x的项，不返回
 - .has_key(x) 字典是否有键值为x的成员
 - in语句: x in y y字典是否含有x键
+- 字典合并 dict(a,\**b):把字典b的内容合并到a里去
 
 ###类
 - \__init__(self):设置该类对象的初始值

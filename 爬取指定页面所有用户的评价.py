@@ -10,12 +10,15 @@ import random
 from pymongo import MongoClient
 from sys import stdout
 
-url = "https://book.douban.com/people/john91/collect"
+
+url_book = 'https://book.douban.com/subject/1007305/collections'
+#第二页开始的url形式为https://book.douban.com/people/john91/collect?start=15&sort=time&rating=all&filter=all&mode=grid
 url_1 = "?start="
 url_2 = "&sort=time&rating=all&filter=all&mode=grid"
 cookies = {'cookie':'ll="118159"; bid=rIFKNErGPjM; viewed="2042063"; gr_user_id=6302343c-4d52-4903-86d3-72e66cd99228; ps=y; ue="495464616@qq.com"; __ads_session=ggwUaKo46gjw+v8AIAA=; gr_session_id_22c937bbd8ebd703f2d8e9445f7dfd03=6521c349-5966-4355-847a-a67548809e6a; gr_cs1_6521c349-5966-4355-847a-a67548809e6a=user_id%3A1; __utmt_douban=1; __utma=30149280.886896177.1484292481.1495594251.1495676585.6; __utmb=30149280.1.10.1495676585; __utmc=30149280; __utmz=30149280.1495676585.6.4.utmcsr=baidu|utmccn=(organic)|utmcmd=organic; _vwo_uuid_v2=B5D7C7975C5D7F6241ADD9533A376ABA|50e0f527e7cb50ccd1ec80fde50abfcf; push_noty_num=0; push_doumail_num=0; ap=1; as="https://book.douban.com/"'}
 headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
 
+#该函数依据传入的url地址，使用chrome浏览器的header，豆瓣读书登入后的cookie，utf-8解码，返回该页面的一个BeautifulSoup对象
 def getHtmlData(url,cookies,headers):
     try:
         r = requests.get(url,cookies=cookies,headers=headers)
@@ -26,10 +29,17 @@ def getHtmlData(url,cookies,headers):
         print('get '+url+' failed!')
     return soup
 
+#该该函数返回看过某本书的用户的列表，可选定爬取的数量
+def getPeopleList(soup,length):
+    peoples = []
+    peoples_href = soup.select('div.pl2 > a')
+
 #该函数返回指定用户已阅读书本数量，返回值为int型
 def getBookQuantity(soup):
     mode = re.compile(r'\d+')
     h1 = soup.select('#db-usr-profile > .info > h1')
+
+########//////这里说我长度不对！！！！
     h1_text = h1[0].get_text()
     book_quantity = int(mode.findall(h1_text)[0])
     return book_quantity
@@ -75,7 +85,9 @@ def getBookScores(scorelist):
     return score_list
 
 #该函数返回一个字典，其中包含了一个读者的所有看过的书和该书的评价
-def getAllBookScores(soup):
+def getAllBookScores(url,soup):
+    url_1 = "?start="
+    url_2 = "&sort=time&rating=all&filter=all&mode=grid"
     all_book_scores = {}
     book_quantity = getBookQuantity(soup)#获得已看书本的总数
     for pages in range(0,math.ceil(book_quantity/15)):#每15本书一页
@@ -83,7 +95,7 @@ def getAllBookScores(soup):
         one_page_soup = getHtmlData(one_page_url,cookies,headers)
         one_page_scores = getBooksMarking(one_page_soup,pages+1)
         all_book_scores = dict(all_book_scores,**one_page_scores)
-        getSleep(2,3)
+        getSleep(3,4)
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
@@ -105,10 +117,74 @@ def getSleep(timemin,timemax):
     time.sleep(round(random.uniform(timemin,timemax),2))
     stdout.flush()#此方法用于实时print数据
 
+#该函数返回当前页面(特指一本书的已看过人的页面)的下个页面的url
+def getNextUrl(soup):
+    next_url = soup.select_one('span.next > a').attrs['href']
+    if isinstance(next_url,str):
+        return next_url
+    else:
+        return False
+
+#该函数爬取了一个页面中所有的含有用户名字的href获取其id，以及用户名，返回两个队列，第一个是id,第二个是用户名
+def getOnePagePeople(soup):
+    ids = []
+    names = []
+    next_url = getNextUrl(soup)
+    people_id = soup.select('div.pl2 > a')
+    people_name = soup.select('div.pl2 > a > span:nth-of-type(1)')
+    for x in people_id:
+        ids.append(x.attrs['href'])
+    for y in people_name:
+        names.append(y.get_text())
+    if len(people_id)==len(people_name):
+        return ids,names
+    else:
+        return False
+#该函数获取指定页数的用户id和用户名,每页包含20人
+def getAllPeople(url,page_quantity):
+    all_peoples = []
+    all_name = []
+    for page in range(0,math.ceil(page_quantity)):
+        soup = getHtmlData(url,cookies,headers)
+        peoples_tuple = getOnePagePeople(soup)
+        if peoples_tuple:
+            ids = peoples_tuple[0]
+            names = peoples_tuple[1]
+        else:
+            ids = []
+            names = []
+        all_peoples += ids
+        all_name += names
+        url = getNextUrl(soup)
+        print('总计 '+str(math.ceil(page_quantity))+' 页,已完成 '+str(page+1)+' 页')
+        getSleep(3,4)
+    return all_peoples,all_name
+
+def getPeopleName(peoples):
+    people_names = []
+    mode = re.compile(r'people/(.+?)/')
+    for p in peoples:
+        people_names += mode.findall(p)
+    return people_names
+
+def getAllPeopleBookScores(url,page_quantity):
+    index = 0
+    url_header = 'https://book.douban.com/people/'
+    url_foot = '/collect'
+    peoples = getAllPeople(url,page_quantity)
+    peoples_id = peoples[0]#用户id数组
+    peoples_name = peoples[1]#用户名字数组
+    for p_id,p_name in zip(peoples_id,peoples_name):
+        index+=1
+        url = url_header+p_id+url_foot
+        soup = getHtmlData(url,cookies,headers)
+        all_book_scores = getAllBookScores(url,soup)
+        print('本次任务打算爬取 '+str(quantity)+' 名用户，当前是第 '+str(index)+' 名!')
+        print(people+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
+        issaved = saveToMongodb(all_book_scores,p_name)
+        if issaved:
+            print(people+" 的数据已保存！")
+
+#-------------------------------分割线----------------------------
 if __name__=='__main__':
-    soup_main = getHtmlData(url,cookies,headers)
-    all_book_scores = getAllBookScores(soup_main)
-    print('xxx总共看过 '+str(getBookQuantity(soup_main))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
-    issaved = saveToMongodb(all_book_scores,'不驯的羔羊')
-    if issaved:
-        print("已保存")
+    getAllPeopleBookScores(url_book,1)
