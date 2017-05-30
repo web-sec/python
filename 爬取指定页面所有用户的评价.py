@@ -25,9 +25,10 @@ def getHtmlData(url,cookies,headers):
         r.encoding = 'utf-8'
         content = r.text
         soup = BeautifulSoup(content,'lxml')
+        return soup
     except:
         print('get '+url+' failed!')
-    return soup
+        return False
 
 #该该函数返回看过某本书的用户的列表，可选定爬取的数量
 def getPeopleList(soup,length):
@@ -133,7 +134,7 @@ def getOnePagePeople(soup):
     people_id = soup.select('div.pl2 > a')
     people_name = soup.select('div.pl2 > a > span:nth-of-type(1)')
     for x in people_id:
-        ids.append(x.attrs['href'])
+        ids.append(getPeopleId(x.attrs['href']))
     for y in people_name:
         names.append(y.get_text())
     if len(people_id)==len(people_name):
@@ -160,12 +161,15 @@ def getAllPeople(url,page_quantity):
         getSleep(3,4)
     return all_peoples,all_name
 
-def getPeopleName(peoples):
-    people_names = []
+#获取形如'https://www.douban.com/people/46397373/'的字符串中的数字id
+def getPeopleId(people_id_url):
     mode = re.compile(r'people/(.+?)/')
-    for p in peoples:
-        people_names += mode.findall(p)
-    return people_names
+    people_id = mode.findall(people_id_url)
+    if len(people_id)>0:
+        return people_id[0]
+    else:
+        print('获取 '+people_id_url+' 的id失败！')
+        return False
 
 def getAllPeopleBookScores(url,page_quantity):
     index = 0
@@ -176,14 +180,14 @@ def getAllPeopleBookScores(url,page_quantity):
     peoples_name = peoples[1]#用户名字数组
     for p_id,p_name in zip(peoples_id,peoples_name):
         index+=1
-        url = url_header+p_id+url_foot
-        soup = getHtmlData(url,cookies,headers)
-        all_book_scores = getAllBookScores(url,soup)
-        print('本次任务打算爬取 '+str(quantity)+' 名用户，当前是第 '+str(index)+' 名!')
-        print(people+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
+        people_collect_url = url_header+p_id+url_foot
+        soup = getHtmlData(people_collect_url,cookies,headers)
+        print('本次任务打算爬取 '+str(page_quantity*20)+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
+        all_book_scores = getAllBookScores(people_collect_url,soup)
+        print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
         issaved = saveToMongodb(all_book_scores,p_name)
         if issaved:
-            print(people+" 的数据已保存！")
+            print(p_name+" 的数据已保存！")
 
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
