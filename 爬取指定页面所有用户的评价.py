@@ -21,6 +21,7 @@ headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWe
 #该函数依据传入的url地址，使用chrome浏览器的header，豆瓣读书登入后的cookie，utf-8解码，返回该页面的一个BeautifulSoup对象
 def getHtmlData(url,cookies,headers):
     try:
+        getSleep(3,4)
         r = requests.get(url,cookies=cookies,headers=headers)
         r.encoding = 'utf-8'
         content = r.text
@@ -37,10 +38,8 @@ def getPeopleList(soup,length):
 
 #该函数返回指定用户已阅读书本数量，返回值为int型
 def getBookQuantity(soup):
-    mode = re.compile(r'\d+')
+    mode =re.compile(r'.+?\((\d+?)\)')
     h1 = soup.select('#db-usr-profile > .info > h1')
-
-########//////这里说我长度不对！！！！
     h1_text = h1[0].get_text()
     book_quantity = int(mode.findall(h1_text)[0])
     return book_quantity
@@ -96,7 +95,6 @@ def getAllBookScores(url,soup):
         one_page_soup = getHtmlData(one_page_url,cookies,headers)
         one_page_scores = getBooksMarking(one_page_soup,pages+1)
         all_book_scores = dict(all_book_scores,**one_page_scores)
-        getSleep(3,4)
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
@@ -120,10 +118,11 @@ def getSleep(timemin,timemax):
 
 #该函数返回当前页面(特指一本书的已看过人的页面)的下个页面的url
 def getNextUrl(soup):
-    next_url = soup.select_one('span.next > a').attrs['href']
-    if isinstance(next_url,str):
-        return next_url
-    else:
+    try:
+        next_url = soup.select_one('span.next > a').attrs['href']
+        if isinstance(next_url,str):
+            return next_url
+    except:
         return False
 
 #该函数爬取了一个页面中所有的含有用户名字的href获取其id，以及用户名，返回两个队列，第一个是id,第二个是用户名
@@ -146,19 +145,21 @@ def getAllPeople(url,page_quantity):
     all_peoples = []
     all_name = []
     for page in range(0,math.ceil(page_quantity)):
-        soup = getHtmlData(url,cookies,headers)
-        peoples_tuple = getOnePagePeople(soup)
-        if peoples_tuple:
-            ids = peoples_tuple[0]
-            names = peoples_tuple[1]
+        if url:
+            soup = getHtmlData(url,cookies,headers)
+            peoples_tuple = getOnePagePeople(soup)
+            if peoples_tuple:
+                ids = peoples_tuple[0]
+                names = peoples_tuple[1]
+            else:
+                ids = []
+                names = []
+            all_peoples += ids
+            all_name += names
+            url = getNextUrl(soup)
+            print('总计 '+str(math.ceil(page_quantity))+' 页,已完成 '+str(page+1)+' 页')
         else:
-            ids = []
-            names = []
-        all_peoples += ids
-        all_name += names
-        url = getNextUrl(soup)
-        print('总计 '+str(math.ceil(page_quantity))+' 页,已完成 '+str(page+1)+' 页')
-        getSleep(3,4)
+            break
     return all_peoples,all_name
 
 #获取形如'https://www.douban.com/people/46397373/'的字符串中的数字id
@@ -172,6 +173,7 @@ def getPeopleId(people_id_url):
         return False
 
 def getAllPeopleBookScores(url,page_quantity):
+    total_info=0
     index = 0
     url_header = 'https://book.douban.com/people/'
     url_foot = '/collect'
@@ -182,13 +184,14 @@ def getAllPeopleBookScores(url,page_quantity):
         index+=1
         people_collect_url = url_header+p_id+url_foot
         soup = getHtmlData(people_collect_url,cookies,headers)
-        print('本次任务打算爬取 '+str(page_quantity*20)+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
+        print('本次任务打算爬取 '+str(len(peoples_id))+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
         all_book_scores = getAllBookScores(people_collect_url,soup)
+        total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
         issaved = saveToMongodb(all_book_scores,p_name)
         if issaved:
             print(p_name+" 的数据已保存！")
-
+    print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
-    getAllPeopleBookScores(url_book,1)
+    getAllPeopleBookScores(url_book,20)
