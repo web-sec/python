@@ -99,6 +99,7 @@ sudo python3.6 -m pip install xxx
 - find与find_one的区别:前者返回游标对象，后者返回字典对象
 - save遇到相同的_id会覆盖，insert直接报错
 - 在希望保存的数据集中添加_id属性，可自定义文档的_id
+- mongodb中，key中不允许包含.这个符号，会出错！
 
 ###pdb调试器
 启用:在目标目录下python3 -m pdb xx.py（-m意思是加载后面的模块）

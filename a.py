@@ -7,6 +7,9 @@ import re
 import pymongo
 import random
 
-a
-if a is None:
-    print('none')
+a= {'node.js':1}
+b={}
+for key in a.keys():
+    k2 = key.replace('.','')
+    b[k2]=a[key]
+print(b)

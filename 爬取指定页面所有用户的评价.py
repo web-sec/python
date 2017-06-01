@@ -11,7 +11,8 @@ from pymongo import MongoClient
 from sys import stdout
 
 
-url_book = 'https://book.douban.com/subject/1007305/collections'
+#url_book = 'https://book.douban.com/subject/1007305/'
+url_book = 'https://book.douban.com/subject/25870705/'
 #第二页开始的url形式为https://book.douban.com/people/john91/collect?start=15&sort=time&rating=all&filter=all&mode=grid
 url_1 = "?start="
 url_2 = "&sort=time&rating=all&filter=all&mode=grid"
@@ -98,12 +99,22 @@ def getAllBookScores(url,soup):
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
+def getClient():
+    try:
+        client = MongoClient()
+        return client
+    except:
+        print('连接指定集合失败！')
+        return False
+
+def closeClient(client):
+    client.close()
 #该函数接受希望保存进数据库的数据集（字典形式的）和一个name做该文档的_id。保存方式为save，意味着每次都会覆盖同意id的数据
-def saveToMongodb(info,name):
-    info['_id'] = name
-    client = MongoClient()
-    db = client.test1
-    collection = db.books1
+def saveToMongodb(myclient,info,p_name,p_id):
+    info['_id'] = p_name
+    info['id'] = p_id
+    db=myclient.test1
+    collection=db.books2
     try:
         collection.save(info)
     except:
@@ -124,6 +135,14 @@ def getNextUrl(soup):
             return next_url
     except:
         return False
+
+#由于mongodb中key不能包含.(小点),所以必须遍历一遍，去除.，然后再保存进数据库
+def deleteDot(thelist):
+    mylist={}
+    for key in thelist.keys():
+        mykey=key.replace('.','')
+        mylist[mykey]=thelist[key]
+    return mylist
 
 #该函数爬取了一个页面中所有的含有用户名字的href获取其id，以及用户名，返回两个队列，第一个是id,第二个是用户名
 def getOnePagePeople(soup):
@@ -172,12 +191,14 @@ def getPeopleId(people_id_url):
         print('获取 '+people_id_url+' 的id失败！')
         return False
 
-def getAllPeopleBookScores(url,page_quantity):
+def getAllPeopleBookScores(url_book,page_quantity):
+    myclient = getClient()
+    url_book_collect = url_book+'collections'
     total_info=0
     index = 0
     url_header = 'https://book.douban.com/people/'
     url_foot = '/collect'
-    peoples = getAllPeople(url,page_quantity)
+    peoples = getAllPeople(url_book_collect,page_quantity)
     peoples_id = peoples[0]#用户id数组
     peoples_name = peoples[1]#用户名字数组
     for p_id,p_name in zip(peoples_id,peoples_name):
@@ -188,10 +209,11 @@ def getAllPeopleBookScores(url,page_quantity):
         all_book_scores = getAllBookScores(people_collect_url,soup)
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
-        issaved = saveToMongodb(all_book_scores,p_name)
+        issaved = saveToMongodb(myclient,deleteDot(all_book_scores),p_name,p_id)
         if issaved:
             print(p_name+" 的数据已保存！")
     print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
+    closeClient(myclient)
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
     getAllPeopleBookScores(url_book,20)
