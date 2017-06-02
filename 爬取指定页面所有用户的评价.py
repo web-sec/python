@@ -101,6 +101,7 @@ def getAllBookScores(url,soup):
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
+#与数据库建立连接
 def getClient():
     try:
         client = MongoClient()
@@ -109,14 +110,16 @@ def getClient():
         print('连接指定集合失败！')
         return False
 
+#断开连接
 def closeClient(client):
     client.close()
+
 #该函数接受希望保存进数据库的数据集（字典形式的）和一个name做该文档的_id。保存方式为save，意味着每次都会覆盖同意id的数据
 def saveToMongodb(myclient,info,p_name,p_id):
     info['_id'] = p_name
     info['id'] = p_id
-    db=myclient.test1
-    collection=db.books2
+    db=myclient.test1#数据库名
+    collection=db.books2#集合名
     try:
         collection.save(info)
     except:
@@ -161,6 +164,7 @@ def getOnePagePeople(soup):
         return ids,names
     else:
         return False
+
 #该函数获取指定页数的用户id和用户名,每页包含20人
 def getAllPeople(url,page_quantity):
     all_peoples = []
@@ -193,11 +197,12 @@ def getPeopleId(people_id_url):
         print('获取 '+people_id_url+' 的id失败！')
         return False
 
+#相当于main函数
 def getAllPeopleBookScores(url_book,page_quantity):
     myclient = getClient()
     url_book_collect = url_book+'collections'
-    total_info=0
-    index = 0
+    total_info=0#统计总公共爬取到的信息条数
+    index = 0#标记爬取的用户的次序
     url_header = 'https://book.douban.com/people/'
     url_foot = '/collect'
     peoples = getAllPeople(url_book_collect,page_quantity)
