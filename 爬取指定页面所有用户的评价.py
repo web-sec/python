@@ -41,10 +41,12 @@ def getPeopleList(soup,length):
 def getBookQuantity(soup):
     mode =re.compile(r'.+?\((\d+?)\)')
     h1 = soup.select('#db-usr-profile > .info > h1')
-    h1_text = h1[0].get_text()
-    book_quantity = int(mode.findall(h1_text)[0])
-    return book_quantity
-
+    try:
+        h1_text = h1[0].get_text()
+        book_quantity = int(mode.findall(h1_text)[0])
+        return book_quantity
+    except:
+        return 0
 #该函数返回指定页面每本书的评价，返回一个{‘书名’：评价分}的字典
 def getBooksMarking(soup,pages=-1):
     booknames = []
@@ -209,7 +211,8 @@ def getAllPeopleBookScores(url_book,page_quantity):
         all_book_scores = getAllBookScores(people_collect_url,soup)
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
-        issaved = saveToMongodb(myclient,deleteDot(all_book_scores),p_name,p_id)
+        if len(all_book_scores)>0:
+            issaved = saveToMongodb(myclient,deleteDot(all_book_scores),p_name,p_id)
         if issaved:
             print(p_name+" 的数据已保存！")
     print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
