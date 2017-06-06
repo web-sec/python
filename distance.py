@@ -112,7 +112,7 @@ def calculateSimilarItems(prefs,n=10):
   c=0
   for item in itemPrefs:
     c+=1
-    if c%100==0: print "%d / %d" % (c,len(itemPrefs))
+    if c%100==0: print ("%d / %d" % (c,len(itemPrefs)))
     #寻找最为相近的物品
     scores=topMatches(itemPrefs,item,n=n,similarity=sim_euclidean)
     result[item]=scores
@@ -144,6 +144,9 @@ def getRecommendedItems(prefs,itemMatch,user):
   rankings.reverse( )
   return rankings
 
+def wf(x):
+    z=x+1
+    return z
 if __name__ == '__main__':
     # carculate(10,sim_euclidean)
     # carculate(10,sim_pearson)

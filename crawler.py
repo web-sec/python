@@ -9,7 +9,7 @@ import pymongo
 import random
 from pymongo import MongoClient
 from sys import stdout
-
+import mongodb#引入同文件夹中自己写的数据库操作文件
 
 #url_book = 'https://book.douban.com/subject/1007305/'
 url_book = 'https://book.douban.com/subject/25870705/'
@@ -28,7 +28,8 @@ def getHtmlData(url,cookies,headers):
         content = r.text
         soup = BeautifulSoup(content,'lxml')
         return soup
-    except:
+    except Exception as e:
+        print (e)
         print('get '+url+' failed!')
         return False
 
@@ -45,8 +46,8 @@ def getBookQuantity(soup):
         h1_text = h1[0].get_text()
         book_quantity = int(mode.findall(h1_text)[0])
         return book_quantity
-    except:
-        return 0
+    except Exception as e:
+        print (e)
 #该函数返回指定页面每本书的评价，返回一个{‘书名’：评价分}的字典
 def getBooksMarking(soup,pages=-1):
     booknames = []
@@ -101,32 +102,6 @@ def getAllBookScores(url,soup):
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
-#与数据库建立连接
-def getClient():
-    try:
-        client = MongoClient()
-        return client
-    except:
-        print('连接指定集合失败！')
-        return False
-
-#断开连接
-def closeClient(client):
-    client.close()
-
-#该函数接受希望保存进数据库的数据集（字典形式的）和一个name做该文档的_id。保存方式为save，意味着每次都会覆盖同意id的数据
-def saveToMongodb(myclient,info,p_name,p_id):
-    info['_id'] = p_name
-    info['id'] = p_id
-    db=myclient.test1#数据库名
-    collection=db.books2#集合名
-    try:
-        collection.save(info)
-    except:
-        print('保存进数据库失败')
-        return False
-    return True
-
 #该函数实现在规定范围内随机一段休眠时间，防止爬取过快被封ip
 def getSleep(timemin,timemax):
     time.sleep(round(random.uniform(timemin,timemax),2))
@@ -138,7 +113,8 @@ def getNextUrl(soup):
         next_url = soup.select_one('span.next > a').attrs['href']
         if isinstance(next_url,str):
             return next_url
-    except:
+    except Exception as e:
+        print (e)
         return False
 
 #由于mongodb中key不能包含.(小点),所以必须遍历一遍，去除.，然后再保存进数据库
@@ -198,8 +174,8 @@ def getPeopleId(people_id_url):
         return False
 
 #相当于main函数
-def getAllPeopleBookScores(url_book,page_quantity):
-    myclient = getClient()
+def getAllPeopleBookScores(url_book,page_quantity,collection_name):#指定书url,爬取用户页数,存储的集合名
+    myclient = mongodb.getClient()
     url_book_collect = url_book+'collections'
     total_info=0#统计总公共爬取到的信息条数
     index = 0#标记爬取的用户的次序
@@ -217,11 +193,14 @@ def getAllPeopleBookScores(url_book,page_quantity):
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
         if len(all_book_scores)>0:
-            issaved = saveToMongodb(myclient,deleteDot(all_book_scores),p_name,p_id)
+            info = deleteDot(all_book_scores)
+            info['_id'] = p_name
+            info['id'] = p_id
+            issaved = mongodb.saveToMongodb(info,myclient,test1,collection_name)
         if issaved:
             print(p_name+" 的数据已保存！")
     print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
-    closeClient(myclient)
+    mongodb.closeClient(myclient)
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
-    getAllPeopleBookScores(url_book,20)
+    getAllPeopleBookScores(url_book,20,books2)
