@@ -8,7 +8,8 @@ def getClient(url='mongodb://localhost'):
     try:
         client = MongoClient(url)
         return client
-    except:
+    except Exception as e:
+        print (e)
         print('连接指定集合失败！')
         return False
 
@@ -17,12 +18,11 @@ def closeClient(client):
     client.close()
 
 #该函数接受希望保存进数据库的数据集（字典形式的）和一个name做该文档的_id。保存方式为save，意味着每次都会覆盖同意id的数据
-def saveToMongodb(info,client,dbname,collection_name):
-    db=client[dbname]#数据库名
-    collection=db[collection_name]#集合名
+def saveToMongodb(info,mycollection):
     try:
-        collection.save(info)
-    except:
+        mycollection.save(info)
+    except Exception as e:
+        print (e)
         print('保存进数据库失败')
         return False
     return True

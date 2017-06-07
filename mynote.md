@@ -64,6 +64,7 @@ sudo python3.6 -m pip install xxx
 - .has_key(x) 字典是否有键值为x的成员
 - in语句: x in y y字典是否含有x键
 - 字典合并 dict(a,\**b):把字典b的内容合并到a里去
+- a.update(b) 把b字典合并到a中
 
 ###类
 - \__init__(self):设置该类对象的初始值

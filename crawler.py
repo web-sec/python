@@ -12,7 +12,7 @@ from sys import stdout
 import mongodb#引入同文件夹中自己写的数据库操作文件
 
 #url_book = 'https://book.douban.com/subject/1007305/'
-url_book = 'https://book.douban.com/subject/25870705/'
+url_book = 'https://book.douban.com/subject/1045890/'
 #第二页开始的url形式为https://book.douban.com/people/john91/collect?start=15&sort=time&rating=all&filter=all&mode=grid
 url_1 = "?start="
 url_2 = "&sort=time&rating=all&filter=all&mode=grid"
@@ -50,6 +50,7 @@ def getBookQuantity(soup):
         print (e)
 #该函数返回指定页面每本书的评价，返回一个{‘书名’：评价分}的字典
 def getBooksMarking(soup,pages=-1):
+    nomarkingbooks_number=0
     booknames = []
     bookscores = []
     evaluatioin = {}
@@ -68,8 +69,9 @@ def getBooksMarking(soup,pages=-1):
             if score_list[index]!=-1:
                 evaluatioin[booknames[index]]=score_list[index]
             else:
+                nomarkingbooks_number+=1
                 continue
-        return evaluatioin
+        return evaluatioin,nomarkingbooks_number
 
 #该函数处理一下爬取到的书本评价分，以列表形式返回每本书的评价分，元素为int型
 def getBookScores(scorelist):
@@ -90,6 +92,7 @@ def getBookScores(scorelist):
 
 #该函数返回一个字典，其中包含了一个读者的所有看过的书和该书的评价
 def getAllBookScores(url,soup):
+    all_nomarkingbooks_number=0
     url_1 = "?start="
     url_2 = "&sort=time&rating=all&filter=all&mode=grid"
     all_book_scores = {}
@@ -97,8 +100,13 @@ def getAllBookScores(url,soup):
     for pages in range(0,math.ceil(book_quantity/15)):#每15本书一页
         one_page_url = url + url_1 + str(pages*15) +url_2
         one_page_soup = getHtmlData(one_page_url,cookies,headers)
-        one_page_scores = getBooksMarking(one_page_soup,pages+1)
+        one_page_info = getBooksMarking(one_page_soup,pages+1)
+        one_page_scores = one_page_info[0]#一个页面的书与对应的评分
+        all_nomarkingbooks_number+= one_page_info[1]#一个页面未评分书数量
         all_book_scores = dict(all_book_scores,**one_page_scores)
+        if all_nomarkingbooks_number/((pages+1)*15)>0.5 and pages>5:
+            print('该读者一半以上的书都没评价，终止爬取！')
+            break
         print('总共 '+str(math.ceil(book_quantity/15))+' 页,第 '+str(pages+1)+' 页已爬完！')
     return all_book_scores
 
@@ -173,9 +181,23 @@ def getPeopleId(people_id_url):
         print('获取 '+people_id_url+' 的id失败！')
         return False
 
+#该函数用来判断指定的用户id是否爬过,即数据库里是否有这个_id的文档
+def iscrawlered(mycollection,user_id):
+    if not isinstance(user_id,str):#user_id如果不是字符串，改成字符串，因为数据库里是字符串格式的
+        user_id = str(user_id)
+    try:
+        cursor = mycollection.find_one({'id':user_id})
+        if cursor:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
 #相当于main函数
-def getAllPeopleBookScores(url_book,page_quantity,collection_name):#指定书url,爬取用户页数,存储的集合名
+def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
     myclient = mongodb.getClient()
+    mycollection = myclient[db_name][collection_name]
     url_book_collect = url_book+'collections'
     total_info=0#统计总公共爬取到的信息条数
     index = 0#标记爬取的用户的次序
@@ -185,22 +207,29 @@ def getAllPeopleBookScores(url_book,page_quantity,collection_name):#指定书url
     peoples_id = peoples[0]#用户id数组
     peoples_name = peoples[1]#用户名字数组
     for p_id,p_name in zip(peoples_id,peoples_name):
-        index+=1
+        index+=1#统计一下已爬取用户的数量
+        if(iscrawlered(mycollection,p_id)):#判断该用户是否已经爬过了
+            print(p_name +' 在数据库中已存在，直接跳过！')
+            continue
         people_collect_url = url_header+p_id+url_foot
         soup = getHtmlData(people_collect_url,cookies,headers)
-        print('本次任务打算爬取 '+str(len(peoples_id))+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
+        print(p_name+' 本次任务打算爬取 '+str(len(peoples_id))+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
         all_book_scores = getAllBookScores(people_collect_url,soup)
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
-        if len(all_book_scores)>0:
-            info = deleteDot(all_book_scores)
-            info['_id'] = p_name
-            info['id'] = p_id
-            issaved = mongodb.saveToMongodb(info,myclient,test1,collection_name)
+        if len(all_book_scores)>10:
+            info['_id'] = p_name#添加_id键，键值为用户名
+            info['id'] = p_id#添加id键，键值为用户id
+            info.update(deleteDot(all_book_scores))#合并字典
+            issaved = mongodb.saveToMongodb(info,mycollection)
+        else:
+            total_info-=len(all_book_scores)
+            print(p_name+' 评价过的书少于10本，不予记录。')
+            continue
         if issaved:
             print(p_name+" 的数据已保存！")
     print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
     mongodb.closeClient(myclient)
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
-    getAllPeopleBookScores(url_book,20,books2)
+    getAllPeopleBookScores(url_book,20,'test1','honglou')

@@ -8,7 +8,7 @@ import pymongo
 import random
 from pymongo import MongoClient
 import math
-from sys import stdout
-def wufan(x):
-    print(x+self.__name__)
-wufan(1)
+import mongodb
+a=2;b=2
+if a>1 and b>1:
+    print('a')
