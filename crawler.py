@@ -12,7 +12,8 @@ from sys import stdout
 import mongodb#引入同文件夹中自己写的数据库操作文件
 
 #url_book = 'https://book.douban.com/subject/1007305/'
-url_book = 'https://book.douban.com/subject/1045890/'
+#url_book = 'https://book.douban.com/subject/1045890/'#红楼梦
+url_book = 'https://book.douban.com/subject/1813841/'#枪炮、细菌与钢铁
 #第二页开始的url形式为https://book.douban.com/people/john91/collect?start=15&sort=time&rating=all&filter=all&mode=grid
 url_1 = "?start="
 url_2 = "&sort=time&rating=all&filter=all&mode=grid"
@@ -196,17 +197,19 @@ def iscrawlered(mycollection,user_id):
         return False
 #相当于main函数
 def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
-    myclient = mongodb.getClient()
-    mycollection = myclient[db_name][collection_name]
     url_book_collect = url_book+'collections'
     total_info=0#统计总公共爬取到的信息条数
     index = 0#标记爬取的用户的次序
     url_header = 'https://book.douban.com/people/'
     url_foot = '/collect'
+
+    myclient = mongodb.getClient()
+    mycollection = myclient[db_name][collection_name]
     peoples = getAllPeople(url_book_collect,page_quantity)
     peoples_id = peoples[0]#用户id数组
     peoples_name = peoples[1]#用户名字数组
     for p_id,p_name in zip(peoples_id,peoples_name):
+        info={}
         index+=1#统计一下已爬取用户的数量
         if(iscrawlered(mycollection,p_id)):#判断该用户是否已经爬过了
             print(p_name +' 在数据库中已存在，直接跳过！')
@@ -228,8 +231,8 @@ def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指�
             continue
         if issaved:
             print(p_name+" 的数据已保存！")
-    print('本次爬取结束，总共获得 '+total_info+' 条有效数据！')
+    print('本次爬取结束，总共获得 '+str(total_info)+' 条有效数据！')
     mongodb.closeClient(myclient)
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
-    getAllPeopleBookScores(url_book,20,'test1','honglou')
+    getAllPeopleBookScores(url_book,20,'test1','qiangpao_xijun_gangtie')

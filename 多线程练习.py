@@ -1,7 +1,5 @@
+#!python3
 #-*-coding:utf-8-*-
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
 import threading
 from time import ctime,sleep
 
