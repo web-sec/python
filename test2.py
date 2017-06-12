@@ -6,10 +6,8 @@ import time
 import re
 import pymongo
 import random
-
-a= {'node.js':1}
-b={}
-for key in a.keys():
-    k2 = key.replace('.','')
-    b[k2]=a[key]
-print(b)
+import reader_crawler
+a={'ee':3}
+b={'ff':4}
+a.update({'ff':66})
+print(a)

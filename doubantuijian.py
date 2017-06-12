@@ -15,9 +15,10 @@ def changeDict(dictionary):
 def getRightData(db_name,collection_name,document_number):
     index = 0
     mydict = {}
+    myclient = mongodb.getClient()
     if isinstance(db_name,str)&&isinstance(collection_name,str):
         try:
-            cursor = mongodb.getBDInfo(db_name,collection_name)
+            cursor = mongodb.getDBInfo(myclient,db_name,collection_name)
         except Exception as e:
             print (e)
     #逐条获取数据库里的数据，然后格式化成我们需要的形式，如{'人名':{'书名':评分,...}}
@@ -29,6 +30,7 @@ def getRightData(db_name,collection_name,document_number):
                 mydict[key] = d[key]
         else:
             break
+    myclient.close()
     return mydict
 #----------------------------------------------
 if __name__=='__main__':

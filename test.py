@@ -9,6 +9,13 @@ import random
 from pymongo import MongoClient
 import math
 import mongodb
-a=2;b=2
-if a>1 and b>1:
-    print('a')
+import reader_crawler
+
+tags=[]
+myclient = mongodb.getClient()
+tags_cursor = mongodb.getDBInfo(myclient,'doubanbooks','tags')
+for document in tags_cursor:
+    if isinstance(document['bookname'],str) and document['iscrawlered']==0:
+        tags.append(document['bookname'])
+myclient.close()
+print(tags)

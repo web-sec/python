@@ -28,12 +28,12 @@ def saveToMongodb(info,mycollection):
     return True
 
 #该函数返回指定数据库、集合的所有文档的游标
-def getBDInfo(db,collection_name):
-    myclient = getClient()
+def getDBInfo(myclient,db,collection_name):
     mydb = myclient[db]
     mycollection = mydb[collection_name]
     cursor = mycollection.find()
     return cursor
+#--------------------------------------------------------
 if __name__=='__main__':
     c = getBDInfo('test1','books3')
     for x in range(0,3):
