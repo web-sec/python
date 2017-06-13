@@ -150,26 +150,31 @@ def getOnePagePeople(soup):
     else:
         return False
 
-#该函数获取指定页数的用户id和用户名,每页包含20人
-def getAllPeople(url,page_quantity):
+#该函数获取看过指定书本的用户的id和用户名
+def getAllPeople(url):
+    index=0
     all_peoples = []
     all_name = []
-    for page in range(0,math.ceil(page_quantity)):
-        if url:
+    while url:
+        try:
+            index+=1
             soup = getHtmlData(url,cookies,headers)
             peoples_tuple = getOnePagePeople(soup)
             if peoples_tuple:
-                ids = peoples_tuple[0]
-                names = peoples_tuple[1]
+               ids = peoples_tuple[0]
+               names = peoples_tuple[1]
             else:
                 ids = []
                 names = []
+            if len(ids)==0 or len(names)==0:
+                break
             all_peoples += ids
             all_name += names
             url = getNextUrl(soup)
-            print('总计 '+str(math.ceil(page_quantity))+' 页,已完成 '+str(page+1)+' 页')
-        else:
-            break
+            print('已完成 '+str(index)+' 页')
+        except Exception as e:
+            print(e)
+            url = False
     return all_peoples,all_name
 
 #获取形如'https://www.douban.com/people/46397373/'的字符串中的数字id
@@ -196,7 +201,7 @@ def iscrawlered(mycollection,user_id):
         print(e)
         return False
 #相当于main函数
-def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
+def getAllPeopleBookScores(url_book,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
     url_book_collect = url_book+'collections'
     total_info=0#统计总公共爬取到的信息条数
     index = 0#标记爬取的用户的次序
@@ -205,7 +210,7 @@ def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指�
 
     myclient = mongodb.getClient()
     mycollection = myclient[db_name][collection_name]
-    peoples = getAllPeople(url_book_collect,page_quantity)
+    peoples = getAllPeople(url_book_collect)
     peoples_id = peoples[0]#用户id数组
     peoples_name = peoples[1]#用户名字数组
     for p_id,p_name in zip(peoples_id,peoples_name):
@@ -233,6 +238,22 @@ def getAllPeopleBookScores(url_book,page_quantity,db_name,collection_name):#指�
             print(p_name+" 的数据已保存！")
     print('本次爬取结束，总共获得 '+str(total_info)+' 条有效数据！')
     mongodb.closeClient(myclient)
+
+def main(times):
+    myclient = mongodb.getClient()
+    mycollection = myclient['doubanbooks']['bookinfo']
+    for n in range(times):
+        try:
+            book = mycollection.find_one({'iscrawlered':0})
+            url_header = 'https://book.douban.com/subject/'
+            book_id = book['bookid']
+            book_url = url_header + str(book_id) +'/'
+            book_name = book['bookname']
+            getAllPeopleBookScores(book_url,'doubanbooks',book_name)
+            mycollection.updata_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
+        except Exception as e:
+            print(e)
+            continue
 #-------------------------------分割线----------------------------
 if __name__=='__main__':
-    getAllPeopleBookScores(url_book,20,'test1','qiangpao_xijun_gangtie')
+    main(10)

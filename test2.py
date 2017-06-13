@@ -7,7 +7,11 @@ import re
 import pymongo
 import random
 import reader_crawler
-a={'ee':3}
-b={'ff':4}
-a.update({'ff':66})
-print(a)
+import mongodb
+
+c = mongodb.getClient()
+g =c.doubanbooks.tags
+
+f=g.find({'tagname':'自助游'},{'tagname':1,'startpage':1})
+for x in f:
+    print(x)

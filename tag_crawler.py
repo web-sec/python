@@ -13,7 +13,7 @@ mode =re.compile(r'.*?\((\d+?)\)')
 for a in a_list:
     tag_dict = {}
     name = a.get_text()#tag名
-    tag_dict.update({'bookname':name,'iscrawlered':0})#该标签未爬取过，设为0，爬取过了，设为1
+    tag_dict.update({'tagname':name,'iscrawlered':0,'startpage':0})#该标签未爬取过，设为0，爬取过了，设为1
     myclient = mongodb.getClient()
     mydb = myclient.doubanbooks
     try:

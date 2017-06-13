@@ -33,6 +33,7 @@ def getDBInfo(myclient,db,collection_name):
     mycollection = mydb[collection_name]
     cursor = mycollection.find()
     return cursor
+
 #--------------------------------------------------------
 if __name__=='__main__':
     c = getBDInfo('test1','books3')

@@ -9,13 +9,13 @@ import random
 from pymongo import MongoClient
 import math
 import mongodb
-import reader_crawler
+# import reader_crawler
 
-tags=[]
 myclient = mongodb.getClient()
-tags_cursor = mongodb.getDBInfo(myclient,'doubanbooks','tags')
-for document in tags_cursor:
-    if isinstance(document['bookname'],str) and document['iscrawlered']==0:
-        tags.append(document['bookname'])
-myclient.close()
-print(tags)
+mycollection = myclient['doubanbooks']['bookinfo']
+for n in range(10):
+    book = mycollection.find_one({'iscrawlered':0})
+    url_header = 'https://book.douban.com/subject/'
+    book_id = book['bookid']
+    book_url = url_header + str(book_id) +'/'
+    print(book_url)
