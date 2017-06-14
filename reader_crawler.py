@@ -249,7 +249,7 @@ def main(times):
             book_id = book['bookid']
             book_url = url_header + str(book_id) +'/'
             book_name = book['bookname']
-            getAllPeopleBookScores(book_url,'doubanbooks',book_name)
+            getAllPeopleBookScores(book_url,'doubanbooks','readers')
             mycollection.updata_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
         except Exception as e:
             print(e)
