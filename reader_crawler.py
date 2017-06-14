@@ -201,7 +201,7 @@ def iscrawlered(mycollection,user_id):
         print(e)
         return False
 #相当于main函数
-def getAllPeopleBookScores(url_book,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
+def getAllPeopleBookScores(book_name,url_book,db_name,collection_name):#指定书url,爬取用户页数,存储的集合名
     url_book_collect = url_book+'collections'
     total_info=0#统计总公共爬取到的信息条数
     index = 0#标记爬取的用户的次序
@@ -221,7 +221,7 @@ def getAllPeopleBookScores(url_book,db_name,collection_name):#指定书url,爬�
             continue
         people_collect_url = url_header+p_id+url_foot
         soup = getHtmlData(people_collect_url,cookies,headers)
-        print(p_name+' 本次任务打算爬取 '+str(len(peoples_id))+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
+        print('来自 '+book_name +' 的 '+p_name+' 本次任务打算爬取 '+str(len(peoples_id))+' 名用户，当前是第 '+str(index)+' 名,url是 '+people_collect_url)
         all_book_scores = getAllBookScores(people_collect_url,soup)
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
@@ -249,7 +249,7 @@ def main(times):
             book_id = book['bookid']
             book_url = url_header + str(book_id) +'/'
             book_name = book['bookname']
-            getAllPeopleBookScores(book_url,'doubanbooks','readers')
+            getAllPeopleBookScores(book_name,book_url,'doubanbooks','readers')
             mycollection.update_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
         except Exception as e:
             print(e)
