@@ -236,7 +236,7 @@ def getAllPeopleBookScores(url_book,db_name,collection_name):#指定书url,爬�
             continue
         if issaved:
             print(p_name+" 的数据已保存！")
-    print('本次爬取结束，总共获得 '+str(total_info)+' 条有效数据！')
+        print(p_name+' 爬取结束。当前总共获得 '+str(total_info)+' 条有效数据！')
     mongodb.closeClient(myclient)
 
 def main(times):
@@ -250,7 +250,7 @@ def main(times):
             book_url = url_header + str(book_id) +'/'
             book_name = book['bookname']
             getAllPeopleBookScores(book_url,'doubanbooks','readers')
-            mycollection.updata_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
+            mycollection.update_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
         except Exception as e:
             print(e)
             continue

@@ -13,9 +13,7 @@ import mongodb
 
 myclient = mongodb.getClient()
 mycollection = myclient['doubanbooks']['bookinfo']
-for n in range(10):
-    book = mycollection.find_one({'iscrawlered':0})
-    url_header = 'https://book.douban.com/subject/'
-    book_id = book['bookid']
-    book_url = url_header + str(book_id) +'/'
-    print(book_url)
+mycollection.update_one({'bookname':'出国自助游教室'},{'$set':{'iscrawlered':1}})
+a=mycollection.find_one({'bookname':'出国自助游教室'})
+print(a['iscrawlered'])
+myclient.close()
