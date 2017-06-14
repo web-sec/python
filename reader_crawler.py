@@ -225,14 +225,14 @@ def getAllPeopleBookScores(book_name,url_book,db_name,collection_name):#指定�
         all_book_scores = getAllBookScores(people_collect_url,soup)
         total_info+=len(all_book_scores)
         print(p_name+' 总共看过 '+str(getBookQuantity(soup))+' 本书,其中已获取有效数据 '+str(len(all_book_scores))+' 条')
-        if len(all_book_scores)>10:
-            info['_id'] = p_name#添加_id键，键值为用户名
-            info['id'] = p_id#添加id键，键值为用户id
+        if len(all_book_scores)>15:
+            info['_id'] = p_id#添加_id键，键值为用户id
+            info['name'] = p_name#添加id键，键值为用户名
             info.update(deleteDot(all_book_scores))#合并字典
             issaved = mongodb.saveToMongodb(info,mycollection)
         else:
             total_info-=len(all_book_scores)
-            print(p_name+' 评价过的书少于10本，不予记录。')
+            print(p_name+' 评价过的书少于15本，不予记录。')
             continue
         if issaved:
             print(p_name+" 的数据已保存！")
