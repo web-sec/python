@@ -9,11 +9,11 @@ import random
 from pymongo import MongoClient
 import math
 import mongodb
-# import reader_crawler
+import datetime
+import reader_crawler
 
-myclient = mongodb.getClient()
-mycollection = myclient['doubanbooks']['bookinfo']
-mycollection.update_one({'bookname':'出国自助游教室'},{'$set':{'iscrawlered':1}})
-a=mycollection.find_one({'bookname':'出国自助游教室'})
-print(a['iscrawlered'])
-myclient.close()
+a = datetime.datetime.now()
+reader_crawler.getSleep(3,4)
+b = datetime.datetime.now()
+t = b-a
+print('d'+str(t))
