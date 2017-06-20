@@ -1,13 +1,5 @@
 #!python3
 #-*-coding:utf-8-*-
-# import requests
-# from bs4 import BeautifulSoup
-# import time
-# import re
-# import pymongo
-# import random
-# import reader_crawler
-# import mongodb
 import os
 #如果要扫描指定目录下的文件，包括子目录，需要调用scan_files("/export/home/test/")
 #如果要扫描指定目录下的特定后缀的文件（比如jar包），包括子目录，调用scan_files("/export/home/test/", postfix=".jar")
@@ -28,5 +20,6 @@ def scan_files(directory,prefix=None,postfix=None):
 
   return files_list
 
-f=scan_files('/Users/wf/fan/课程资料',postfix='.docx')
-print(f)
+if __name__ == '__main__':
+    f=scan_files('/Users/wf/fan/课程资料',postfix='.doc')
+    print(f)

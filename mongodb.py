@@ -2,6 +2,37 @@
 #-*-coding:utf-8-*-
 from pymongo import MongoClient
 
+class Mongo(object):
+    """docstring for Mongodb."""
+    def __init__(self,db_name,collection_name):
+        self.url = 'mongodb://localhost'
+        self.db_name = db_name
+        self.collection_name = collection_name
+        self.username = ''
+        self.password = ''
+        self.client = MongoClient(self.url)
+        self.client_col = self.client[self.db_name][self.collection_name]
+
+
+    def close(self):
+        self.client.close()
+
+    def saveToMongodb(self,info):
+        try:
+            self.client_col.save(info)
+        except Exception as e:
+            print (e)
+            print('保存进数据库失败')
+            return False
+        return True
+
+    def getDBInfo(self):
+        cursor = self.client_col.find()
+        return cursor
+
+    def findOneBook(self,bookid):
+        return self.client_col.find_one({'bookid':bookid})
+
 
 #与数据库建立连接
 def getClient(url='mongodb://localhost'):

@@ -12,8 +12,22 @@ import mongodb
 import datetime
 import reader_crawler
 
-a = datetime.datetime.now()
-reader_crawler.getSleep(3,4)
-b = datetime.datetime.now()
-t = b-a
-print('d'+str(t))
+class Mongo(object):
+    """docstring for Mongodb."""
+    def __init__(self,db_name,collection_name):
+        self.url = 'mongodb://localhost'
+        self.db_name = db_name
+        self.collection_name = collection_name
+        self.username = ''
+        self.password = ''
+        self.client = MongoClient(self.url)[self.db_name][self.collection_name]
+
+
+    def close(self):
+        self.client.close()
+
+    def findOne(self,attrs):
+        return self.client.find_one(attrs)
+
+m = Mongo('doubanbooks','tags')
+print(m.findOne({'tagname':'小说'}))
