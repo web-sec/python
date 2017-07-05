@@ -1,4 +1,14 @@
 # python学习笔记
+###查看文档
+1. 使用自带的pydoc服务
+```
+python –m pydoc –p 1234
+python3 –m pydoc –p 1234
+```
+2. 使用__doc__方法
+```
+print(def.__doc__)
+```
 ### 安装homebrew
 参考网上推荐健的方法，在终端中执行以下命令：
 ```
@@ -21,6 +31,15 @@ sudo python3.6 -m pip install xxx
 ### 安装第三方包可以用easy_install，一次性搞定
 ### 查看已安装的第三方库：在python环境中输入help('modules')
 退出python环境:quit()或control+d
+###python打包
+1. cx_freeze:
+```
+cxfreeze hello.py --target-dir dist
+```
+2. Pyinstaller
+```
+pyinstaller --windowed --onefile --clean --noconfirm main.py
+```
 ### python下使用mongodb
 - 安装mongodb : 用homebrew安装，一键搞定，之后新建、data/db文件夹，具体看印象笔记
 - 安装mongodb可视化工具:robomongo，官网直接下
@@ -91,6 +110,9 @@ sudo python3.6 -m pip install xxx
 - os.makedir(x) 创建文件夹x
 - os.makedirs(x\\y) 创建嵌套文件夹
 - os.stat(x) 路径为x的文件夹的相关数据。st_size:文件大小(字节)；st_mtime:最后访问时间、最后修改时间（UNIX时间）
+- os.path.basename() 获取文件名
+- os.path.realpath() 获取文件绝对路径
+- os.path.split() 分割路径，返回turple(路径，文件名)
 
 ###json库
 - .load(x) 加载JSON对象
@@ -104,7 +126,16 @@ sudo python3.6 -m pip install xxx
 
 ###pdb调试器
 启用:在目标目录下python3 -m pdb xx.py（-m意思是加载后面的模块）
+或者脚本中:
+```
+import pdb
+pdb.set_trace()#设置断点
+```
 退出:-quit/q
+1. n:执行下一行
+2. p x:打印变量x
+3. s:单步，进入函数内部
+4. b x:在x行动态添加断点
 pdb命令:
 | 命令  |                      说明                       | 缩写 |
 | ----- | ----------------------------------------------- | ---- |
@@ -125,3 +156,41 @@ pdb命令:
 
 ###BeautifulSoup库
 - 获取标签属性:.attrs['属性名']
+
+###tempfile模块
+1. tempfile.NamedTemporaryFile() 生成零时文件可设置文件名的前缀、后缀、生成位置、是否自动删除等信息
+  (prefix=filename,suffix=file_extension, dir=location,delete=False)
+
+###hashlib库
+```
+m = hashlib.md5()
+m.update(s)#s是目标字符串
+return m.hexdigest()#加密后
+```
+1. 只能将字符串md5加密，相同内容加密后也相同
+2. 加密unicode注意转码
+
+###zipfile库
+1. 压缩文件
+```
+def zip_file(filepath,zipfilepath=''):
+    mode = re.compile(r'\.')
+    file = os.path.basename(filepath)
+    filename = mode.split(file)[0].encode('utf-8')
+    zipfilename = md5(filename)+'.zip'
+    zf = zipfile.ZipFile(os.path.join(zipfilepath,zipfilename), "w", zipfile.ZIP_STORED,allowZip64=True)
+    zf.write(filepath,file)
+    return os.path.join(zipfilepath,zipfilename)
+  ```
+  2. 解压文件
+  在macos下解压会多出macosx文件夹，删了。
+  在macos下通过py3解压中文名文件，可能会出现乱码，py2没问题，暂时不会解决
+  ```
+  def unzip(zipfilepath,unzipdir='virus'):#文件名，文件路径（默认为当前文件夹）
+      zipFile = zipfile.ZipFile(zipfilepath)#获取压缩文件对象
+      for file in zipFile.namelist():
+          zipFile.extract(file, unzipdir)#解压到指定文件夹下
+      zipFile.close()
+      if os.path.exists('virus/__MACOSX'):
+          shutil.rmtree('virus/__MACOSX')
+  ```
