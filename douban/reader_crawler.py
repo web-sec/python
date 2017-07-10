@@ -249,12 +249,11 @@ def main(times):
             book_name = book['bookname']
             total += getAllPeopleBookScores(book_name,book_url,'doubanbooks','readers')
             mycollection.update_one({'bookid':book['bookid']},{'$set':{'iscrawlered':1}})
-            end_time = datetime.datetime,now()
+            end_time = datetime.datetime.now()
             spend_time = end_time - start_time
             print('已累计获得 ' +str(total)+' 条数据,当前爬取用时 ' + str(spend_time))
         except Exception as e:
             print(e)
             continue
 #-------------------------------分割线----------------------------
-if __name__=='__main__':
-    main(10)
+main(10)
