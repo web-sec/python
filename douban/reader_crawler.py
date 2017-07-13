@@ -22,7 +22,7 @@ def getHtmlData(url,cookies,headers):
         r = requests.get(url,cookies=cookies,headers=headers)
         r.encoding = 'utf-8'
         content = r.text
-        soup = BeautifulSoup(content,'lxml')
+        soup = BeautifulSoup(content,'lxml')#解析器为lxml；python内置的为html.parser；还可以选html5lib(第三方库)
         return soup
     except Exception as e:
         print (e)
