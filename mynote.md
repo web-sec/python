@@ -52,6 +52,7 @@ pyinstaller --windowed --onefile --clean --noconfirm main.py
 - list（列表）
 - tuple(元组)
 - sets(集合)
+list转set会自动排序
 - dictionary（字典）
 数据类型判断方法:type(x)、isinstance(x,type)
 区别：type()不会认为子类是一种父类类.isinstance()会认为子类是一种父类类型。
