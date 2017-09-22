@@ -1,5 +1,6 @@
 #!python3
 #-*-coding:utf-8-*-
+
 from numpy import *
 
 def loadSimpData():
