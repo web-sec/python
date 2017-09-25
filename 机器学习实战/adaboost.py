@@ -71,6 +71,7 @@ def adaBoostTrainDS(dataArr,classLabels,numIt=40):
         bestStump['alpha'] = alpha
         weakClassArr.append(bestStump)                  #store Stump Params in Array
         #print "classEst: ",classEst.T
+        print(bestStump)
         expon = multiply(-1*alpha*mat(classLabels).T,classEst) #exponent for D calc, getting messy
         D = multiply(D,exp(expon))                              #Calc New D for next iteration
         D = D/D.sum()
@@ -79,7 +80,7 @@ def adaBoostTrainDS(dataArr,classLabels,numIt=40):
         #print "aggClassEst: ",aggClassEst.T
         aggErrors = multiply(sign(aggClassEst) != mat(classLabels).T,ones((m,1)))
         errorRate = aggErrors.sum()/m
-        print "total error: ",errorRate
+        print ("total error: ",errorRate)
         if errorRate == 0.0: break
     return weakClassArr,aggClassEst
 
@@ -92,7 +93,7 @@ def adaClassify(datToClass,classifierArr):
                                  classifierArr[i]['thresh'],\
                                  classifierArr[i]['ineq'])#call stump classify
         aggClassEst += classifierArr[i]['alpha']*classEst
-        print aggClassEst
+        print (aggClassEst)
     return sign(aggClassEst)
 
 def plotROC(predStrengths, classLabels):
@@ -120,4 +121,8 @@ def plotROC(predStrengths, classLabels):
     plt.title('ROC curve for AdaBoost horse colic detection system')
     ax.axis([0,1,0,1])
     plt.show()
-    print "the Area Under the Curve is: ",ySum*xStep
+    print ("the Area Under the Curve is: ",ySum*xStep)
+
+
+dataMatrix,labels = loadSimpData()
+a=adaBoostTrainDS(dataMatrix,labels,20)
