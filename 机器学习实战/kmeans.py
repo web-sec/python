@@ -111,11 +111,11 @@ def getNewPoint(newData):#newData=[[[1,2],[1,3]],[1,1]]]
     return newPoint
 
 x=loadData('testSet.txt')
-p,d = kmeans(3,x)
+p,d = kmeans(4,x)
 
 
 fig = plt.figure()
-color = ['red','blue','green']
+color = ['red','blue','green','orange']
 inter=-1
 for x in d:
     inter+=1
