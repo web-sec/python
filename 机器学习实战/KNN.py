@@ -32,7 +32,3 @@ def jisuan(list1,list2):
     for (x,y) in zip(list1,list2):
         result += (y-x)**2
     return result**0.5
-
-group,labels = createDataSet()
-p = {'a':1,'b':2,'c':3}
-print(max(p))
