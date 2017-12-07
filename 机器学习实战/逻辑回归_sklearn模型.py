@@ -9,7 +9,7 @@ from sklearn import metrics
 def sigmoid(inX):
     return 1.0 / (1 + numpy.exp(-inX))
 
-data = numpy.loadtxt('data2.txt',delimiter=',')
+data = numpy.loadtxt('data1.txt',delimiter=',')
 X = data[:,0:2]
 Y = data[:,2]
 x = X[:,0]
@@ -31,8 +31,9 @@ predicted = lgs.predict(X_test)
 print(metrics.f1_score(Y_test,predicted))
 print(a,b)
 
-
-x = numpy.arange(-1.0, 1.5, 0.1)
+# a=[0.20623172,0.2014716]
+# b=-25.16133401
+x = numpy.arange(20, 100, 1)
 y = (-b - a[0] * x) / a[1]
 plt.plot(x,y)
 plt.show()

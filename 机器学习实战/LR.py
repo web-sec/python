@@ -6,7 +6,7 @@ from numpy import *
 def loadDataSet():
     dataMat = []
     labelMat = []
-    with open('data10.txt', 'r') as fr:
+    with open('testSet.txt', 'r') as fr:
         for line in fr.readlines():
             lineArr = line.strip().split()
             dataMat.append([1.0, float(lineArr[0]), float(lineArr[1])])
@@ -22,7 +22,7 @@ def gradAscent(dataMatIn, classLabels):
     dataMatrix = mat(dataMatIn)  # 将数组转换成举证
     labelMat = mat(classLabels).transpose()  # 同上，transpose()=T:转置
     m, n = shape(dataMatrix)  # 行数 列数
-    alpha = 1
+    alpha = 0.001
     maxCycles = 50000
     weights = ones((n, 1))
     for k in range(maxCycles):  # heavy on matrix operations
