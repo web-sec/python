@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 import os
+import nltk
 
 #删除s2列表中的NAN，同时删除对应下标的s1中的信息
 def DeleteNan(s1,s2):
@@ -51,14 +52,14 @@ def GetOneColumnData(source,column_name):
     print('get {column_length} {column_name} data!'.format(column_length=len(column_data),column_name=column_name))
     return column_data
 
-def WriteTrainDataToCsv(algorithm,data_quantity, component_type, accuracy, precision, recall, f1, auc):
-    if not os.path.exists('../../info/test_result.csv'):
-        with open('../../info/test_result.csv', 'w', newline='', encoding='utf-8') as f:
+def WriteTrainDataToCsv(csv_path,algorithm,data_quantity, component_type, accuracy, precision, recall, f1, auc):
+    if not os.path.exists(csv_path):
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             first_column = ['algorithm','data_quantity', 'component_type', 'accuracy', 'precision', 'recall', 'f1', 'auc']
             writer = csv.writer(f)
             writer.writerow(first_column)
     else:
-        with open('../../info/test_result.csv', 'a', newline='', encoding='utf-8') as f:
+        with open(csv_path, 'a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([algorithm,data_quantity,component_type, accuracy, precision, recall, f1, auc])
             print('successfully writing!')
@@ -80,6 +81,27 @@ def CalThisKindComponentAccount(one_component_type_list):
             quantity += 1
     return quantity
 
+def Change_N_V_Words(text):
+    porter = nltk.stem.WordNetLemmatizer()
+    newtext = ''
+    for x in nltk.word_tokenize(text):
+        if WordIsNumOrAA(x):
+            w=''
+        else:
+            w = porter.lemmatize(x, 'n')
+            w = porter.lemmatize(w, 'v')
+        newtext += w + ' '
+    return newtext
+
+def WordIsNumOrAA(word):
+    flag = False
+    for i in word:
+        if ord(i)>47 and ord(i)<58:
+            flag = True
+    if len(word)>1:
+         if ord(word[0]) == ord(word[1]):
+            flag = True
+    return flag
 #另一种方法计算文本的TF-IDF;
 # vectorizer=CountVectorizer(stop_words='english')#该类会将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
 # transformer=TfidfTransformer()#该类会统计每个词语的tf-idf权值
@@ -97,6 +119,8 @@ def CalThisKindComponentAccount(one_component_type_list):
 csv_data = ReadCSVFile('../../info/cleandata_14w.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
+for i in range(len(description)):
+    description[i] = Change_N_V_Words(description[i])
 DeleteNan(product_component,description)
 kinds = GetALLDiffKindOfComponents(product_component)
 
@@ -104,7 +128,7 @@ kinds = GetALLDiffKindOfComponents(product_component)
 for type in kinds:
     component_type_list = SelectType(product_component,type)
     type_quantity = CalThisKindComponentAccount(component_type_list)
-    if type_quantity <= 4000 and type_quantity > 1000:
+    if type_quantity > 1000:
         print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
 
         # 计算文本TF-IDF
@@ -135,9 +159,9 @@ for type in kinds:
         print('recall: {recall}'.format(recall=recall))
         print('f1: {f1}'.format(f1=f1))
         print('auc: {auc}'.format(auc=auc))
-        WriteTrainDataToCsv('LR',
-                            '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),
-                            type, accuracy, precision, recall, f1, auc)
+        csv_path = '../../info/N_V_num_filter.csv'
+        WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
 
-        # feature = lgs.coef_[0]
+        print(len(lgs.coef_[0]))
+        print(X.shape[1])
         # print('feature quantity: {quantity}'.format(quantity=len(feature)))

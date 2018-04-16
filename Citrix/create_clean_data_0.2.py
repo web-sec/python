@@ -4,8 +4,10 @@ def ReadCSVFile(filepath,encoding='utf-8'):
     data = []
     with open(filepath,'r',encoding=encoding) as f:
         reader = csv.reader(f)
+        data.append(next(reader))
         for i in reader:
-            data.append(i)
+            if not IsIllegalData(i):
+                data.append(i)
     print('has read {length} data.'.format(length=len(data)))
     return data
 
@@ -25,25 +27,23 @@ def GetOneColumnData(source,column_name):
     print('get {column_length} {column_name} data!'.format(column_length=len(column_data),column_name=column_name))
     return column_data
 
+def NotEnglish(string):
+    for c in string:
+        if ord(c) > 128:
+            return True
+    return False
 
-def DeleteIllegalData(component,description,subject,resolution):
-    for i in range(len(component) - 1, -1, -1):
-        #将不要的component类别名写入判断中
-        if component[i] == 'No Applicable Component' or component[i] == 'Unspecified' or component[i] == 'Desktop VDA' or component[i] == 'Server VDA' or description[i] == 'n/a' or description[i] == 'N/A':
-            del (component[i])
-            del (description[i])
-            del (subject[i])
-            del (resolution[i])
-        else:#非英文字符
-            for c in description[i]:
-                if ord(c) > 128:
-                    del (component[i])
-                    del (description[i])
-                    del (subject[i])
-                    del (resolution[i])
-                    break
+def IsIllegalData(one_piece_of_data):
+    l = len(one_piece_of_data)
+    if l < 14:
+        return True
+    else:
+        illegal_data = ['No Applicable Component','Unspecified','Desktop VDA','Server VDA' ,'n/a' ,'N/A']
+        for i in [7,10,11,12]:
+            if one_piece_of_data[i] in illegal_data or NotEnglish(one_piece_of_data[i]):
+                return True
+    return False
 
-    return
 csv_data = ReadCSVFile('../../info/all.csv')#读取文件
 component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
@@ -51,11 +51,9 @@ subject = GetOneColumnData(csv_data,'Subject')
 resolution = GetOneColumnData(csv_data,'Resolution')
 print(len(component),len(description),len(subject),len(resolution))
 
-DeleteIllegalData(component,description,subject,resolution)
-print(len(component),len(description),len(subject),len(resolution))
-#
-# with open('../../info/newcleandata.csv','w',newline='',encoding='utf-8') as f:
-#     writer = csv.writer(f)
-#     writer.writerow(['Product Component','Subject','Description'])
-#     for x,y,z in zip(component,subject,description):
-#         writer.writerow([x,y,z])
+
+with open('../../info/newcleandata.csv','w',newline='',encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerow(['Product Component','Subject','Description','Resolution'])
+    for x,y,z,p in zip(component,subject,description,resolution):
+        writer.writerow([x,y,z,p])
