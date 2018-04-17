@@ -52,8 +52,8 @@ resolution = GetOneColumnData(csv_data,'Resolution')
 print(len(component),len(description),len(subject),len(resolution))
 
 
-with open('../../info/newcleandata.csv','w',newline='',encoding='utf-8') as f:
-    writer = csv.writer(f)
-    writer.writerow(['Product Component','Subject','Description','Resolution'])
-    for x,y,z,p in zip(component,subject,description,resolution):
-        writer.writerow([x,y,z,p])
+# with open('../../info/newcleandata.csv','w',newline='',encoding='utf-8') as f:
+#     writer = csv.writer(f)
+#     writer.writerow(['Product Component','Subject','Description','Resolution'])
+#     for x,y,z,p in zip(component,subject,description,resolution):
+#         writer.writerow([x,y,z,p])

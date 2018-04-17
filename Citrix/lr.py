@@ -53,16 +53,17 @@ def GetOneColumnData(source,column_name):
     return column_data
 
 def WriteTrainDataToCsv(csv_path,algorithm,data_quantity, component_type, accuracy, precision, recall, f1, auc):
+    #如果没这个文件，第一行先生成列名
     if not os.path.exists(csv_path):
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             first_column = ['algorithm','data_quantity', 'component_type', 'accuracy', 'precision', 'recall', 'f1', 'auc']
             writer = csv.writer(f)
             writer.writerow(first_column)
-    else:
-        with open(csv_path, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([algorithm,data_quantity,component_type, accuracy, precision, recall, f1, auc])
-            print('successfully writing!')
+    #写入训练后的测试数据
+    with open(csv_path, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow([algorithm,data_quantity,component_type, accuracy, precision, recall, f1, auc])
+        print('successfully writing!')
     return
 
 #获取所有component的类别
@@ -116,11 +117,11 @@ def WordIsNumOrAA(word):
 #             print(word[j],weight[i][j])
 
 #读取文件
-csv_data = ReadCSVFile('../../info/cleandata_14w.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 for i in range(len(description)):
-    description[i] = Change_N_V_Words(description[i])
+    description[i] = Change_N_V_Words(description[i])#把原文本中的动词、名词替换成原型
 DeleteNan(product_component,description)
 kinds = GetALLDiffKindOfComponents(product_component)
 
@@ -159,7 +160,7 @@ for type in kinds:
         print('recall: {recall}'.format(recall=recall))
         print('f1: {f1}'.format(f1=f1))
         print('auc: {auc}'.format(auc=auc))
-        csv_path = '../../info/N_V_num_filter.csv'
+        csv_path = '../../info/N_V_num_filter_13w.csv'
         WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
 
         print(len(lgs.coef_[0]))
