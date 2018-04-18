@@ -7,6 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 import os
 import nltk
+import numpy as np
 
 #删除s2列表中的NAN，同时删除对应下标的s1中的信息
 def DeleteNan(s1,s2):
@@ -103,6 +104,8 @@ def WordIsNumOrAA(word):
          if ord(word[0]) == ord(word[1]):
             flag = True
     return flag
+
+
 #另一种方法计算文本的TF-IDF;
 # vectorizer=CountVectorizer(stop_words='english')#该类会将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
 # transformer=TfidfTransformer()#该类会统计每个词语的tf-idf权值
@@ -117,52 +120,57 @@ def WordIsNumOrAA(word):
 #             print(word[j],weight[i][j])
 
 #读取文件
-csv_data = ReadCSVFile('../../info/all.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 # for i in range(len(description)):
-#     description[i] = Change_N_V_Words(description[i])#把原文本中的动词、名词替换成原型，很慢，而且效果不明显，先注释掉
+#     description[i] = Change_N_V_Words(description[i])#把原文本中的动词、名词替换成原型
 DeleteNan(product_component,description)
 kinds = GetALLDiffKindOfComponents(product_component)
 
 #type指product_component的一个种类
-for type in kinds:
-    component_type_list = SelectType(product_component,type)
-    type_quantity = CalThisKindComponentAccount(component_type_list)
-    if type_quantity > 1000:
-        print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
+type = 'Controller'
+component_type_list = SelectType(product_component,type)
+type_quantity = CalThisKindComponentAccount(component_type_list)
 
-        # 计算文本TF-IDF
-        vectorizer = TfidfVectorizer(stop_words='english')
-        X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
+print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
 
-        # 切割训练集和测试集
-        y = component_type_list
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+# 计算文本TF-IDF
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
 
-        # 使用LR模型训练
-        lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
-        lgs.fit(X_train, y_train)
+# 切割训练集和测试集
+y = component_type_list
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-        # 将模型运用在测试集上
-        predicted = lgs.predict(X_test)
+# 使用LR模型训练
+lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
+lgs.fit(X_train, y_train)
+p = lgs.predict_proba(X_test)#分类概率
+pp = []#保存新分类结果
 
-        # 用各种度量标准基于测试集结果评价模型
-        accuracy = metrics.accuracy_score(y_test, predicted)
-        precision = metrics.precision_score(y_test, predicted)
-        recall = metrics.recall_score(y_test, predicted)
-        f1 = metrics.f1_score(y_test, predicted)
-        auc = metrics.roc_auc_score(y_test, predicted)
+#自己写分类策略
+for i in p:
+    if i[1]-i[0]>=0.15:
+        pp.append(1)
+    else:
+        pp.append(0)
 
-        print('types:' + type)
-        print('accuracy: {accuracy}'.format(accuracy=accuracy))
-        print('precision: {precision}'.format(precision=precision))
-        print('recall: {recall}'.format(recall=recall))
-        print('f1: {f1}'.format(f1=f1))
-        print('auc: {auc}'.format(auc=auc))
-        csv_path = '../../info/C=1_all_24w.csv'
-        WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
+#predicted = lgs.predict(X_test)
+predicted = pp
 
-        print(len(lgs.coef_[0]))
-        print(X.shape[1])
-        # print('feature quantity: {quantity}'.format(quantity=len(feature)))
+# 用各种度量标准基于测试集结果评价模型
+accuracy = metrics.accuracy_score(y_test, predicted)
+precision = metrics.precision_score(y_test, predicted)
+recall = metrics.recall_score(y_test, predicted)
+f1 = metrics.f1_score(y_test, predicted)
+auc = metrics.roc_auc_score(y_test, predicted)
+
+print('types:' + type)
+print('accuracy: {accuracy}'.format(accuracy=accuracy))
+print('precision: {precision}'.format(precision=precision))
+print('recall: {recall}'.format(recall=recall))
+print('f1: {f1}'.format(f1=f1))
+print('auc: {auc}'.format(auc=auc))
+#csv_path = '../../info/N_V_num_filter_13w.csv'
+#WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)

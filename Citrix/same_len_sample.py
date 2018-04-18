@@ -1,6 +1,13 @@
 import csv
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
 import os
 import nltk
+import random
 
 #删除s2列表中的NAN，同时删除对应下标的s1中的信息
 def DeleteNan(s1,s2):
@@ -55,10 +62,66 @@ def GetALLDiffKindOfComponents(component_list):
             kinds.append(i)
     return kinds
 
+#计算这个种类的component的数量
+def CalThisKindComponentAccount(one_component_type_list):
+    quantity = 0
+    for i in one_component_type_list:
+        if i == 1:
+            quantity += 1
+    return quantity
+
 
 #读取文件
-csv_data = ReadCSVFile('../../info/cleandata_14w.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 
 #将正负样本比例均衡
+DeleteNan(product_component,description)
+kinds = GetALLDiffKindOfComponents(product_component)
+type = 'Controller'
+component_type_list = SelectType(product_component,type)
+type_quantity = CalThisKindComponentAccount(component_type_list)
+
+
+
+
+newdata = []
+newtype = []
+l = len(description)
+for i in range(l):
+    if len(newdata)<2000 and component_type_list[i] == 1:
+        newdata.append(description[i])
+        newtype.append(1)
+for i in range(l):
+    if len(newdata)<4000 and component_type_list[i] == 0:
+        newdata.append(description[i])
+        newtype.append(0)
+
+# 计算文本TF-IDF
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(newdata)  # 计算每个词语的tf-idf权值
+
+y = newtype
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+# 使用LR模型训练
+lgs = LogisticRegression(penalty='l2', class_weight='balanced', C=1)
+lgs.fit(X_train, y_train)
+
+# 将模型运用在测试集上
+predicted = lgs.predict(X_test)
+
+# 用各种度量标准基于测试集结果评价模型
+accuracy = metrics.accuracy_score(y_test, predicted)
+precision = metrics.precision_score(y_test, predicted)
+recall = metrics.recall_score(y_test, predicted)
+f1 = metrics.f1_score(y_test, predicted)
+auc = metrics.roc_auc_score(y_test, predicted)
+
+print('types:' + type)
+print('accuracy: {accuracy}'.format(accuracy=accuracy))
+print('precision: {precision}'.format(precision=precision))
+print('recall: {recall}'.format(recall=recall))
+print('f1: {f1}'.format(f1=f1))
+print('auc: {auc}'.format(auc=auc))

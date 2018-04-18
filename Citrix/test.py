@@ -1,5 +1,10 @@
 #coding:utf-8
-a = [0,0,0,1,0,1]
-for i in [3,5]:
-    if a[i]==1:
-        print('t')
+n=1000
+newdata=[]
+for i in range(10000):
+    while n > 0:
+        if 1 == 1:
+            newdata.append(1)
+            n-=1
+
+print(len(newdata))
