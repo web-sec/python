@@ -1,10 +1,5 @@
 #coding:utf-8
-n=1000
-newdata=[]
-for i in range(10000):
-    while n > 0:
-        if 1 == 1:
-            newdata.append(1)
-            n-=1
-
-print(len(newdata))
+a=['des','i am wu,fd']
+b=['you are bea','t hds sa']
+for i,j in zip(a,b):
+    print(i+' '+j)

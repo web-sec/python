@@ -117,7 +117,7 @@ def WordIsNumOrAA(word):
 #             print(word[j],weight[i][j])
 
 #读取文件
-csv_data = ReadCSVFile('../../info/all.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 # for i in range(len(description)):
@@ -160,7 +160,7 @@ for type in kinds:
         print('recall: {recall}'.format(recall=recall))
         print('f1: {f1}'.format(f1=f1))
         print('auc: {auc}'.format(auc=auc))
-        csv_path = '../../info/C=1_all_24w.csv'
+        csv_path = '../../info/C=1_13w.csv'
         WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
 
         print(len(lgs.coef_[0]))

@@ -120,9 +120,16 @@ def WordIsNumOrAA(word):
 #             print(word[j],weight[i][j])
 
 #读取文件
-csv_data = ReadCSVFile('../../info/cleandata_13w.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
+
+#添加resolution
+# resolution = GetOneColumnData(csv_data,'Resolution')
+# # newdata = []
+# # for p,q in zip(description,resolution):
+# #     newdata.append(p+' '+q)
+
 # for i in range(len(description)):
 #     description[i] = Change_N_V_Words(description[i])#把原文本中的动词、名词替换成原型
 DeleteNan(product_component,description)
@@ -139,6 +146,7 @@ print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
 vectorizer = TfidfVectorizer(stop_words='english')
 X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
 
+
 # 切割训练集和测试集
 y = component_type_list
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
@@ -146,12 +154,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 # 使用LR模型训练
 lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
 lgs.fit(X_train, y_train)
+
+
 p = lgs.predict_proba(X_test)#分类概率
+
 pp = []#保存新分类结果
 
 #自己写分类策略
 for i in p:
-    if i[1]-i[0]>=0.15:
+    if i[1]-i[0]>=0.1:
         pp.append(1)
     else:
         pp.append(0)
@@ -160,6 +171,7 @@ for i in p:
 predicted = pp
 
 # 用各种度量标准基于测试集结果评价模型
+# predicted = lgs.predict(X_test)
 accuracy = metrics.accuracy_score(y_test, predicted)
 precision = metrics.precision_score(y_test, predicted)
 recall = metrics.recall_score(y_test, predicted)

@@ -72,14 +72,14 @@ def CalThisKindComponentAccount(one_component_type_list):
 
 
 #读取文件
-csv_data = ReadCSVFile('../../info/cleandata_13w.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 
 #将正负样本比例均衡
 DeleteNan(product_component,description)
 kinds = GetALLDiffKindOfComponents(product_component)
-type = 'Controller'
+type = 'Printing'
 component_type_list = SelectType(product_component,type)
 type_quantity = CalThisKindComponentAccount(component_type_list)
 
@@ -90,11 +90,11 @@ newdata = []
 newtype = []
 l = len(description)
 for i in range(l):
-    if len(newdata)<2000 and component_type_list[i] == 1:
+    if len(newdata)<4000 and component_type_list[i] == 1:
         newdata.append(description[i])
         newtype.append(1)
 for i in range(l):
-    if len(newdata)<4000 and component_type_list[i] == 0:
+    if len(newdata)<8000 and component_type_list[i] == 0:
         newdata.append(description[i])
         newtype.append(0)
 
