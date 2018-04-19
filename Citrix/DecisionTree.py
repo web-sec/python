@@ -7,6 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 import os
 import nltk
+from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 
 #删除s2列表中的NAN，同时删除对应下标的s1中的信息
@@ -152,7 +153,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 
 # 使用LR模型训练
-lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
+#lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
+lgs = DecisionTreeClassifier(random_state=0)
 lgs.fit(X_train, y_train)
 
 #自己写分类策略
@@ -182,6 +184,3 @@ print('precision: {precision}'.format(precision=precision))
 print('recall: {recall}'.format(recall=recall))
 print('f1: {f1}'.format(f1=f1))
 print('auc: {auc}'.format(auc=auc))
-#csv_path = '../../info/N_V_num_filter_13w.csv'
-#WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
-
