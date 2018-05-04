@@ -2,7 +2,9 @@ import numpy as np
 import csv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB
 from sklearn import metrics
 def DeleteNan(s1,s2):
     nan = float('nan')
@@ -65,55 +67,42 @@ def CalThisKindComponentAccount(one_component_type_list):
     return quantity
 
 
-#读取文件
-csv_data = ReadCSVFile('../../info/cleandata_12w_PSDR.csv')
+csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 resolution = GetOneColumnData(csv_data,'Resolution')
 
-# 计算文本TF-IDF
-vectorizer = TfidfVectorizer(stop_words='english',sublinear_tf=True)
-X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
-X_train = X[:100000]
+kinds = GetALLDiffKindOfComponents(product_component)
 
-# 切割训练集和测试集
-y = product_component
-y_train = y[:100000]
+#type指定product_component的一个种类
+type = 'Controller'
+component_type_list = SelectType(product_component,type)
+type_quantity = CalThisKindComponentAccount(component_type_list)
+print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
 
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(description[:10000])  # 计算每个词语的tf-idf权值
+y = component_type_list[:10000]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
+X_test = X_test.toarray()
+X_train = X_train.toarray()
 
-# 使用LR模型训练
-rf = RandomForestClassifier(n_estimators=100)
+# 不管任何参数，都用默认的，拟合下数据看看
+rf = MultinomialNB()
 rf.fit(X_train, y_train)
-X_test = X[100000:]
-y_test = y[100000:]
-#自己写分类策略
-#p = lgs.predict_proba(X_test)#分类概率
-p = rf.predict(X_test)
-accuracy = metrics.accuracy_score(y_test, p)
-print(accuracy)
-pp = rf.predict_proba(X_test)
-def GetTopNProba(l,n):
-    top = []
-    for i in range(n):
-        top.append(l.index(max(l)))
-        l[top[-1]] = 0
-    return top
-def GetTopNClassifyName(predict_proba,classes,n):
-    p = predict_proba.tolist()
-    classnames = []
-    for k in range(len(p)):
-        name_index = GetTopNProba(p[k], n)
-        name = []
-        for i in name_index:
-            name.append(classes[i])
-        classnames.append(name)
-    return classnames
+predicted = rf.predict(X_test)
 
-c=GetTopNClassifyName(pp,rf.classes_,3)
-n=0
-for i,j in zip(y_test,c):
-    if i in j:
-        n+=1
-print(n/len(y_test))
+# 用各种度量标准基于测试集结果评价模型
+accuracy = metrics.accuracy_score(y_test, predicted)
+precision = metrics.precision_score(y_test, predicted)
+recall = metrics.recall_score(y_test, predicted)
+f1 = metrics.f1_score(y_test, predicted)
+auc = metrics.roc_auc_score(y_test, predicted)
+
+print('types:' + type)
+print('accuracy: {accuracy}'.format(accuracy=accuracy))
+print('precision: {precision}'.format(precision=precision))
+print('recall: {recall}'.format(recall=recall))
+print('f1: {f1}'.format(f1=f1))
+print('auc: {auc}'.format(auc=auc))

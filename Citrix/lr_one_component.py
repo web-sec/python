@@ -7,6 +7,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 import os
 import nltk
+import re
+from sklearn.decomposition import TruncatedSVD
 import numpy as np
 
 #删除s2列表中的NAN，同时删除对应下标的s1中的信息
@@ -83,17 +85,7 @@ def CalThisKindComponentAccount(one_component_type_list):
             quantity += 1
     return quantity
 
-def Change_N_V_Words(text):
-    porter = nltk.stem.WordNetLemmatizer()
-    newtext = ''
-    for x in nltk.word_tokenize(text):
-        if WordIsNumOrAA(x):
-            w=''
-        else:
-            w = porter.lemmatize(x, 'n')
-            w = porter.lemmatize(w, 'v')
-        newtext += w + ' '
-    return newtext
+
 
 def WordIsNumOrAA(word):
     flag = False
@@ -105,6 +97,53 @@ def WordIsNumOrAA(word):
             flag = True
     return flag
 
+def GetTop10(l):
+    if len(l)<=10:
+        return l
+    else:
+        l.sort(key = lambda a:a[5])
+        return l[:10]
+
+def Suspicious(X,y,typename,threshold):
+    l1=int(0.7*len(y))
+    print(l1)
+    X_train=X[:l1]
+    X_test=X[l1:]
+    y_train=y[:l1]
+    y_test=y[l1:]
+
+    # 使用LR模型训练
+    lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
+    lgs.fit(X_train, y_train)
+
+    #找出可能错分的文本
+    suspicious1 = []
+    suspicious2 = []
+    suspicious3 = []
+    p = lgs.predict_proba(X_test)#分类概率
+    #模型认为正例，实际负例
+    for i in range(len(p)):
+        description_index = 91857 + i
+        if p[i][1] > threshold and y_test[i]==0:
+            suspicious1.append(['FP',product_component[description_index],typename,description[description_index],
+                                resolution[description_index],p[i][1],description_index+2])#+2是为了和csv文档中的行数一致
+
+    #模型认为负例，实际正例
+    for i in range(len(p)):
+        description_index = 91857 + i
+        if p[i][0] > threshold and y_test[i] == 1:
+            suspicious1.append(['FN',product_component[description_index], 'non-'+typename, description[description_index],
+                                resolution[description_index], p[i][0], description_index + 2])
+
+    #模型认为正例，实际正例
+    for i in range(len(p)):
+        description_index = 91857 + i
+        if p[i][1] > threshold and y_test[i] == 1:
+            suspicious1.append(['TP',product_component[description_index], typename, description[description_index],
+                                resolution[description_index], p[i][1], description_index + 2])
+
+    suspicious = GetTop10(suspicious1) + GetTop10(suspicious2) + GetTop10(suspicious3)
+    return suspicious
 
 #另一种方法计算文本的TF-IDF;
 # vectorizer=CountVectorizer(stop_words='english')#该类会将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
@@ -124,30 +163,42 @@ csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 resolution = GetOneColumnData(csv_data,'Resolution')
-
 #添加resolution
-# resolution = GetOneColumnData(csv_data,'Resolution')
-# # newdata = []
-# # for p,q in zip(description,resolution):
-# #     newdata.append(p+' '+q)
+resolution = GetOneColumnData(csv_data,'Resolution')
+newdata = []
+for p,q in zip(description,resolution):
+    newdata.append(p+' '+q)
 
-# for i in range(len(description)):
-#     description[i] = Change_N_V_Words(description[i])#把原文本中的动词、名词替换成原型
-DeleteNan(product_component,description)
+#作文本映射
+patterns = [re.compile(r'client drive'),re.compile(r'client drives'),re.compile(r'client drive mapping'),re.compile(r'drive mapping'),re.compile(r'client drives mapping'),re.compile(r'client mapping'),re.compile(r'client mapping drive'),re.compile(r'client mapping drives'),re.compile(r'CMD')]
+for i in range(len(newdata)):
+    for j in patterns:
+        newdata[i] = re.sub(j,'CDM',newdata[i])
+
 kinds = GetALLDiffKindOfComponents(product_component)
 
 #type指product_component的一个种类
-type = 'Database'
-component_type_list = SelectType(product_component,type)
+typename = 'Client Drives'
+component_type_list = SelectType(product_component,typename )
 type_quantity = CalThisKindComponentAccount(component_type_list)
-
-print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
+print('{type} 类型共有 {num} 条！'.format(type=typename ,num=type_quantity))
 
 # 计算文本TF-IDF
 vectorizer = TfidfVectorizer(stop_words='english')
-X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
-# 切割训练集和测试集
+X = vectorizer.fit_transform(newdata)  # 计算每个词语的tf-idf权值
 y = component_type_list
+# svd = TruncatedSVD(n_components = 150)
+# X = svd.fit_transform(X)
+
+# suspicious = Suspicious(X,y,type,0.9)
+# with open('1.csv', 'w', newline='', encoding='utf-8') as f:
+#     writer = csv.writer(f)
+#     for data in suspicious:
+#         writer.writerow(data)
+#     print('successfully writing!')
+
+
+#切割训练集和测试集
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 
@@ -156,7 +207,10 @@ lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
 lgs.fit(X_train, y_train)
 
 #自己写分类策略
-#p = lgs.predict_proba(X_test)#分类概率
+p = lgs.predict_proba(X_test)#分类概率
+print(type(p))
+xx = np.array()
+print(type(p) == type(xx))
 # pp = []#保存新分类结果
 # for i in p:
 #     if i[1]-i[0]>=0.1:
@@ -166,22 +220,22 @@ lgs.fit(X_train, y_train)
 #predicted = pp
 
 
-predicted = lgs.predict(X_test)
-
-# 用各种度量标准基于测试集结果评价模型
 # predicted = lgs.predict(X_test)
-accuracy = metrics.accuracy_score(y_test, predicted)
-precision = metrics.precision_score(y_test, predicted)
-recall = metrics.recall_score(y_test, predicted)
-f1 = metrics.f1_score(y_test, predicted)
-auc = metrics.roc_auc_score(y_test, predicted)
-
-print('types:' + type)
-print('accuracy: {accuracy}'.format(accuracy=accuracy))
-print('precision: {precision}'.format(precision=precision))
-print('recall: {recall}'.format(recall=recall))
-print('f1: {f1}'.format(f1=f1))
-print('auc: {auc}'.format(auc=auc))
-#csv_path = '../../info/N_V_num_filter_13w.csv'
-#WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
+#
+# # 用各种度量标准基于测试集结果评价模型
+# # predicted = lgs.predict(X_test)
+# accuracy = metrics.accuracy_score(y_test, predicted)
+# precision = metrics.precision_score(y_test, predicted)
+# recall = metrics.recall_score(y_test, predicted)
+# f1 = metrics.f1_score(y_test, predicted)
+# auc = metrics.roc_auc_score(y_test, predicted)
+#
+# print('types:' + type)
+# print('accuracy: {accuracy}'.format(accuracy=accuracy))
+# print('precision: {precision}'.format(precision=precision))
+# print('recall: {recall}'.format(recall=recall))
+# print('f1: {f1}'.format(f1=f1))
+# print('auc: {auc}'.format(auc=auc))
+# #csv_path = '../../info/N_V_num_filter_13w.csv'
+# #WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
 

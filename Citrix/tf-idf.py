@@ -4,7 +4,6 @@ import string
 from nltk.corpus import stopwords
 from collections import Counter
 from nltk.stem.porter import *
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 text1 = "Python is a 2000 made-for-TV horror movie directed by Richard \
 Clabaugh. The film features several cult favorite actors, including William \
@@ -52,7 +51,6 @@ def get_final_tokens(text):
     count = Counter(stem_tokens(filtered))
     return count
 
-# print(get_final_tokens(text1))
 
 def tf(word, count):
     return count[word] / sum(count.values())#某词出现的次数/总词数
@@ -66,9 +64,11 @@ def idf(word, count_list):
 def tfidf(word, count, count_list):
     return tf(word, count) * idf(word, count_list)#计算TF-IDF
 
-count = get_final_tokens(text1)
-results = {}
-for word in count:
-    results[word] = tfidf(word,count,count)
-print(results)
-print(sorted(results.items(),key=lambda d:d[1],reverse = True))
+count_list = ' http://support.citrix.com/article/CTX138195'
+count1 = get_final_tokens(count_list)
+print(count1)
+# results = {}
+# for word in count1:
+#     results[word] = tfidf(word,count1,count_list)
+# print(results)
+# print(sorted(results.items(),key=lambda d:d[1],reverse = True))

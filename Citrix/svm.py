@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn import svm
 import os
+import time
+from sklearn.decomposition import TruncatedSVD
 
 def DeleteNan(s1,s2):#删除s2列表中的NAN，同时删除对应下标的s1中的信息
     nan = float('nan')
@@ -21,7 +23,7 @@ def SelectType(component_type,typename):
         if x == typename:
             types.append(1)
         else:
-            types.append(0)
+            types.append(-1)
     return types
 
 def ReadCSVFile(filepath,encoding='utf-8'):
@@ -80,24 +82,29 @@ description = GetOneColumnData(csv_data,'Description')
 DeleteNan(product_component,description)
 kinds = GetALLDiffKindOfComponents(product_component)
 
-type = 'Controller'
+type = 'Database'
 component_type_list = SelectType(product_component,type)
 type_quantity = CalThisKindComponentAccount(component_type_list)
 
 print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
 
 #计算文本TF-IDF
-vectorizer = TfidfVectorizer(stop_words = 'english')
+vectorizer = TfidfVectorizer(stop_words = 'english',sublinear_tf=True,use_idf=True)
 X = vectorizer.fit_transform(description)#计算每个词语的tf-idf权值
+
+# svd = TruncatedSVD(n_components = 100)
+# X = svd.fit_transform(X)
+
 
 #切割训练集和测试集
 y = component_type_list
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-
+time1 = time.time()
 #使用SVM模型训练
-clf = svm.SVC(C=1, kernel='linear')
-clf.fit(X_train, y_train)
 
+clf = svm.SVC(C=3, kernel='linear')
+clf.fit(X_train, y_train)
+time2 = time.time()
 #将模型运用在测试集上
 predicted = clf.predict(X_test)
 
@@ -107,6 +114,7 @@ precision = metrics.precision_score(y_test,predicted)
 recall = metrics.recall_score(y_test,predicted)
 f1 = metrics.f1_score(y_test,predicted)
 auc = metrics.roc_auc_score(y_test,predicted)
+train_time = time2-time1
 
 print('types:'+type)
 print('accuracy: {accuracy}'.format(accuracy=accuracy))
@@ -114,6 +122,6 @@ print('precision: {precision}'.format(precision=precision))
 print('recall: {recall}'.format(recall=recall))
 print('f1: {f1}'.format(f1=f1))
 print('auc: {auc}'.format(auc=auc))
-
+print('train_time: {time}'.format(time=train_time))
 
 

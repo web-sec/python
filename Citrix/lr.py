@@ -103,6 +103,7 @@ def WordIsNumOrAA(word):
          if ord(word[0]) == ord(word[1]):
             flag = True
     return flag
+
 #另一种方法计算文本的TF-IDF;
 # vectorizer=CountVectorizer(stop_words='english')#该类会将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
 # transformer=TfidfTransformer()#该类会统计每个词语的tf-idf权值
@@ -131,9 +132,11 @@ for type in kinds:
     type_quantity = CalThisKindComponentAccount(component_type_list)
     if type_quantity > 1000:
         print('{type} 类型共有 {num} 条！'.format(type=type,num=type_quantity))
-
+        ngram = 1
+        # if len(type.strip().split(' ')) >1:#如果component是个词组，用2-ngram
+        #     ngram = 2
         # 计算文本TF-IDF
-        vectorizer = TfidfVectorizer(stop_words='english')
+        vectorizer = TfidfVectorizer(stop_words='english',sublinear_tf=True)
         X = vectorizer.fit_transform(description)  # 计算每个词语的tf-idf权值
 
         # 切割训练集和测试集
@@ -160,7 +163,7 @@ for type in kinds:
         print('recall: {recall}'.format(recall=recall))
         print('f1: {f1}'.format(f1=f1))
         print('auc: {auc}'.format(auc=auc))
-        csv_path = '../../info/C=1_13w.csv'
+        csv_path = '../../info/C=1_13w_sublinear_tf=True.csv'
         WriteTrainDataToCsv(csv_path,'LR', '{len_types}/{len_all}'.format(len_types=type_quantity, len_all=len(product_component)),type, accuracy, precision, recall, f1, auc)
 
         print(len(lgs.coef_[0]))
