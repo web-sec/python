@@ -81,7 +81,7 @@ def GetMoreThanXXXPieceOfComponentData(data,XXX):
     kind_quantity = {}
     product_component = GetOneColumnData(data, 'Product Component')
     kinds = GetALLDiffKindOfComponents(product_component)
-    print('less than {num} will be filter!'.format(num = XXX))
+    print('less than {num} component will be filter!'.format(num = XXX))
     print('before filter, there are {num} kinds of components,total {piece} data!'.format(num=len(kinds),piece=len(data)))
     for i in kinds:
         kind_quantity[i] = 0
@@ -99,21 +99,54 @@ def GetMoreThanXXXPieceOfComponentData(data,XXX):
     print('after filter, there are {num} kinds of components,total {piece} data!'.format(num=(len(kinds) - len(less_than_200)), piece=len(data)))
     return data
 
+def GetTopNComponentNames(csv_data,n):
+    n_component_name = []
+    component_quantity = []
+    component_list = GetOneColumnData(csv_data,'Product Component')
+    all_component_name = GetALLDiffKindOfComponents(component_list)
+    for name in all_component_name:
+        component_quantity.append([name,CalThisKindComponentAccount(component_list,name)])
+    component_quantity_sort = sorted(component_quantity, key=lambda x: x[1], reverse=True)
+    for i in range(n):
+        n_component_name.append(component_quantity_sort[i][0])
+    return n_component_name
+
+def GetTopNComponentData(csv_data,n):
+    data = []
+    data.append(csv_data[0])
+    component_name = GetTopNComponentNames(csv_data,n)
+    for i in csv_data[1:]:
+        if i[0] in component_name:
+            data.append(i)
+    print('total {component_kinds_len} components with {data_len} piece of data'.format(component_kinds_len=len(component_name),data_len=len(data)))
+    return data
+
+def SelectColumnData(description,resolution,cause,subject,n):
+    column = [description,resolution,cause,subject]
+    data = []
+    for i in range(len(description)):
+        s = ''
+        for j in range(n):
+            s +=(column[j][i]+' ')
+        data.append(s)
+    return data
+
 #读取文件
+csv_data = ReadCSVFile('../../info/cleandata_13w_PSDRC.csv')
+#csv_data = ReadCSVFile('../../info/cleandata_12w_PSDR.csv')
+#csv_data = ReadCSVFile('../../info/cleandata_10w_ctx.csv')
 #csv_data = ReadCSVFile('../../info/cleandata_9w_nohttp.csv')
-csv_data = ReadCSVFile('../../info/cleandata_12w_PSDR.csv')
 
-csv_data = GetMoreThanXXXPieceOfComponentData(csv_data,200)#把总量比较少的component数据去掉
-
+#csv_data = GetMoreThanXXXPieceOfComponentData(csv_data,200)#把总量比较少的component数据去掉
+csv_data = GetTopNComponentData(csv_data,63)#只取数量前n的component数据
 product_component = GetOneColumnData(csv_data,'Product Component')
+subject = GetOneColumnData(csv_data,'Subject')
 description = GetOneColumnData(csv_data,'Description')
 resolution = GetOneColumnData(csv_data,'Resolution')
+cause = GetOneColumnData(csv_data,'Cause')
 
-#使用description和resolution同时作为训练数据
-newdata = []
-for p,q in zip(description,resolution):
-    newdata.append(p+' '+q)
-newdata=resolution
+#选择使用哪几个column作为训练数据，n代表选前n个
+newdata = SelectColumnData(description,resolution,cause,subject,4)
 
 #控制训练集比例
 percentage = int(0.7*len(newdata))
@@ -131,10 +164,10 @@ y_train = y[:percentage]
 
 
 # 使用LR模型训练
-# lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
+lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=1)
 
 #使用随机森林模型
-lgs = RandomForestClassifier(n_estimators=120)
+#lgs = RandomForestClassifier(n_estimators=120)
 lgs.fit(X_train, y_train)
 
 

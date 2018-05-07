@@ -160,6 +160,7 @@ def Suspicious(X,y,typename,threshold):
 
 #读取文件
 csv_data = ReadCSVFile('../../info/cleandata_13w_PSDR.csv')
+#csv_data = ReadCSVFile('../../info/cleandata_9w_nohttp.csv')
 product_component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 resolution = GetOneColumnData(csv_data,'Resolution')
@@ -170,10 +171,10 @@ for p,q in zip(description,resolution):
     newdata.append(p+' '+q)
 
 #作文本映射
-patterns = [re.compile(r'client drive'),re.compile(r'client drives'),re.compile(r'client drive mapping'),re.compile(r'drive mapping'),re.compile(r'client drives mapping'),re.compile(r'client mapping'),re.compile(r'client mapping drive'),re.compile(r'client mapping drives'),re.compile(r'CMD')]
-for i in range(len(newdata)):
-    for j in patterns:
-        newdata[i] = re.sub(j,'CDM',newdata[i])
+# patterns = [re.compile(r'client drive'),re.compile(r'client drives'),re.compile(r'client drive mapping'),re.compile(r'drive mapping'),re.compile(r'client drives mapping'),re.compile(r'client mapping'),re.compile(r'client mapping drive'),re.compile(r'client mapping drives'),re.compile(r'CMD')]
+# for i in range(len(newdata)):
+#     for j in patterns:
+#         newdata[i] = re.sub(j,'CDM',newdata[i])
 
 kinds = GetALLDiffKindOfComponents(product_component)
 
@@ -187,6 +188,7 @@ print('{type} 类型共有 {num} 条！'.format(type=typename ,num=type_quantity
 vectorizer = TfidfVectorizer(stop_words='english')
 X = vectorizer.fit_transform(newdata)  # 计算每个词语的tf-idf权值
 y = component_type_list
+print(len(vectorizer.get_feature_names()))
 # svd = TruncatedSVD(n_components = 150)
 # X = svd.fit_transform(X)
 
