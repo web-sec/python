@@ -5,6 +5,9 @@ import csv
 import string
 from nltk.corpus import stopwords
 from collections import Counter
+noenglish = 0
+nolegalcomp = 0
+ctxdata = 0
 def get_simple_tokens(text):#对文章进行分词
     lowers = text.lower()
     #remove the punctuation using the character deletion step of translate
@@ -40,6 +43,7 @@ def ReadCSVFile(filepath,encoding='utf-8'):
 #获取指定列名的全部信息；
 def GetOneColumnData(source,column_name):
     column_list = source[0]
+    print(column_list)
     column_data = []
     if column_name not in column_list:
         print('{column_name} not exists!'.format(column_name=column_name))
@@ -77,11 +81,13 @@ def IsIllegalData(one_piece_of_data):
             #elif ComponentIsIlleagal(one_piece_of_data[7]):
             #elif SubjectIsIlleagal(one_piece_of_data[10]):
             #elif DescriptionIsIlleagal(one_piece_of_data[11]):
-            elif ResolutionIsIlleagal(one_piece_of_data[12]):
-                return True
+            #elif ResolutionIsIlleagal(one_piece_of_data[12]):
+            #    return True
     return False
 
 csv_data = ReadCSVFile('../../info/all.csv')#读取文件
+case_id = GetOneColumnData(csv_data,'Id')
+case_number = GetOneColumnData(csv_data,'CaseNumber')
 component = GetOneColumnData(csv_data,'Product Component')
 description = GetOneColumnData(csv_data,'Description')
 subject = GetOneColumnData(csv_data,'Subject')
@@ -92,5 +98,5 @@ print(len(component),len(description),len(subject),len(resolution))
 with open('../../info/newcleandata.csv','w',newline='',encoding='utf-8') as f:
     writer = csv.writer(f)
     writer.writerow(['Product Component','Subject','Description','Resolution'])
-    for x,y,z,p in zip(component,subject,description,resolution):
-        writer.writerow([x,y,z,p])
+    for i,j,x,y,z,p in zip(case_id,case_number,component,subject,description,resolution):
+        writer.writerow([i,j,x,y,z,p])
