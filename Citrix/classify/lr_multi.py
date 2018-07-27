@@ -180,7 +180,7 @@ y_train = y[:percentage]
 
 
 # 使用LR模型训练
-lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=5)
+lgs = LogisticRegression(penalty='l2', class_weight='balanced',C=5, multi_class='ovr')
 
 #使用随机森林模型
 #lgs = RandomForestClassifier(n_estimators=100)

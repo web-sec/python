@@ -10,7 +10,7 @@ from collections import Counter
 def ReadCSVFile(filepath,encoding='utf-8'):
     data = []
     with open(filepath,'r',encoding=encoding) as f:
-        reader = csv.reader(f)
+        reader = csv.reader((line.replace('\0', '') for line in f))
         data.append(next(reader))
         for i in reader:
             data.append(i)
@@ -36,14 +36,16 @@ def GetCTXNumber(s):
         if IsSameNumbers(number_list):
             return number_list[0]
 
-def GetAllKBNumber(filepath,casenumber_column_index=1,description_column_index=12):
+#在48w数据的csv文件里,casenumber在第一列,resolution在第18列,orgid在第20列
+def GetAllKBNumber(filepath,casenumber_column_index = 0,description_column_index = 17,orgid_column_index = 19):
     csv_data = ReadCSVFile(filepath)#读取文件
     data = []
     for i in csv_data:
-        if len(i) > description_column_index:
+        if len(i) == len(csv_data[0]):
             number = GetCTXNumber(i[description_column_index])
             if number != None:
-                data.append([i[casenumber_column_index],number])
+                data.append([i[casenumber_column_index],number,i[orgid_column_index]])
+    data.insert(0,['CaseNumber','CTXNumber','OrgID'])
     return data
 
 def WriteToCSV(data,filepath='newdata.csv'):
@@ -53,5 +55,5 @@ def WriteToCSV(data,filepath='newdata.csv'):
             writer.writerow(i)
 
 if __name__ == '__main__':
-    data = GetAllKBNumber('../../info/all.csv')
-    WriteToCSV(data)
+    data = GetAllKBNumber('../../../info/48w_ts_cases_from_20160101.csv')
+    WriteToCSV(data,'newdata.csv')
